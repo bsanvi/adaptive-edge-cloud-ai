@@ -1,0 +1,40 @@
+{
+  "modelVersion": "reference-v1",
+  "featureSchemaVersion": "features-v1",
+  "sha256": "91f4cb1b1b97cdeb303cb7580c9885be9a03fb150fb90aa756038e3173a4835c",
+  "purpose": "Untrained deterministic integration reference; no accuracy claim",
+  "license": "CC0-1.0",
+  "input": {
+    "name": "features",
+    "dtype": "float32",
+    "shape": [
+      1,
+      8
+    ]
+  },
+  "output": {
+    "name": "probabilities",
+    "dtype": "float32",
+    "shape": [
+      1,
+      2
+    ]
+  },
+  "featureOrder": [
+    "mean",
+    "standardDeviation",
+    "minimum",
+    "maximum",
+    "rootMeanSquare",
+    "peakToPeak",
+    "zeroCrossingRate",
+    "positiveFraction"
+  ],
+  "normalization": "identity",
+  "labels": [
+    "NORMAL",
+    "ANOMALY"
+  ],
+  "anomalyThreshold": 0.5,
+  "probabilityTolerance": 1e-05
+}

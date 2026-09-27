@@ -1,0 +1,29 @@
+{
+  "requestId": "req-estimate-001",
+  "task": {
+    "taskId": "sample-001",
+    "taskType": "SENSOR_ANOMALY",
+    "complexity": "LOW",
+    "dataSizeBytes": 113,
+    "estimatedFeatureBytes": 262,
+    "estimatedResultBytes": 160
+  },
+  "device": {
+    "cpuPercent": 30,
+    "ramPercent": 40,
+    "batteryPercent": null,
+    "source": "MEASURED"
+  },
+  "network": {
+    "connected": false,
+    "networkLatencyMs": null,
+    "bandwidthMbps": null,
+    "sampledAt": null,
+    "source": "MEASURED"
+  },
+  "edgeCapable": true,
+  "cloudCapable": true,
+  "remainingDeadlineMs": 1000,
+  "edgeCarbonIntensityGPerKwh": 500,
+  "cloudCarbonIntensityGPerKwh": 500
+}

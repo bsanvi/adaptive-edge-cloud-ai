@@ -18,11 +18,13 @@ decision-service/
 
 Person 3 owns:
 cloud-service/
+route-estimator/
 
 Person 4 owns:
 dashboard-orchestrator/
 
-The four components communicate using HTTP + JSON only.
+The five services communicate using HTTP + JSON only. Person 3 owns two services,
+as authorized by the project owner using docs/Java Architecture Plan.txt as baseline.
 
 Do not directly call Java classes belonging to another module.
 
@@ -59,6 +61,7 @@ During parallel development, each developer should modify only their assigned mo
 Person 3 owns only:
 
 cloud-service/**
+route-estimator/**
 
 Person 3 implements:
 
@@ -68,6 +71,7 @@ Person 3 implements:
 - Cloud health endpoint
 - Network probe endpoint
 - Cloud deployment configuration
+- Local route estimates, calibration, latency, device/system energy, communication and carbon
 
 Person 3 must not implement:
 
@@ -78,13 +82,14 @@ Person 3 must not implement:
 - decision logging
 - fallback routing
 
-Person 3 service runs on port 8083.
+Person 3 cloud-service runs on port 8083.
+Person 3 route-estimator runs locally on Laptop 1 at 127.0.0.1:8084 and makes no remote calls.
 
-During the two-laptop demo, it must bind to 0.0.0.0 so Laptop 1 can access it.
+During the two-laptop demo, cloud-service must bind to 0.0.0.0 so Laptop 1 can access it.
 
 Before finishing any coding task:
 
-1. Run the cloud-service tests.
+1. Run the cloud-service and route-estimator tests.
 2. Fix failing tests.
 3. Review changed files.
 4. Do not commit automatically unless explicitly asked.

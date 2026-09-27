@@ -1,0 +1,4 @@
+onnx==1.18.0
+numpy==2.4.6
+protobuf==7.36.2
+typing_extensions==4.16.0

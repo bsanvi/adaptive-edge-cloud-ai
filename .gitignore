@@ -1,0 +1,8 @@
+**/target/
+.tools/
+.venv/
+*.log
+.env
+*.mv.db
+*.trace.db
+__pycache__/
