@@ -1,0 +1,597 @@
+openapi: 3.1.0
+info:
+  title: Person 3 proposed integration baseline
+  version: 0.1.0
+  description: Requires team approval. Reference model is untrained. POST JSON bodies
+    limited to 1048576 UTF-8 bytes. No deduplication or automatic remote retry.
+paths:
+  /api/v1/cloud/health:
+    get:
+      operationId: cloudHealth
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+    servers:
+    - url: http://127.0.0.1:8083
+  /api/v1/cloud/ready:
+    get:
+      operationId: cloudReadiness
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+        '503':
+          description: Model unavailable or incompatible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+    servers:
+    - url: http://127.0.0.1:8083
+  /api/v1/cloud/predict:
+    post:
+      operationId: cloudPredict
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+        '400':
+          description: Invalid or oversized request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Invalid or oversized request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Privacy denial, inference failure, or unavailable model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Privacy denial, inference failure, or unavailable model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Privacy denial, inference failure, or unavailable model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RawRequest'
+    servers:
+    - url: http://127.0.0.1:8083
+  /api/v1/cloud/hybrid/infer:
+    post:
+      operationId: cloudHybridInfer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HybridOutput'
+        '400':
+          description: Invalid or oversized request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Invalid or oversized request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Privacy denial, inference failure, or unavailable model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Privacy denial, inference failure, or unavailable model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Privacy denial, inference failure, or unavailable model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Feature schema version mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HybridRequest'
+    servers:
+    - url: http://127.0.0.1:8083
+  /api/v1/estimate/health:
+    get:
+      operationId: estimateHealth
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+    servers:
+    - url: http://127.0.0.1:8084
+  /api/v1/estimate/routes:
+    post:
+      operationId: estimateRoutes
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstimateResponse'
+        '400':
+          description: Invalid or oversized request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Invalid or oversized request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstimateRequest'
+    servers:
+    - url: http://127.0.0.1:8084
+  /api/v1/cloud/probe:
+    get:
+      operationId: cloudProbe
+      parameters:
+      - name: bytes
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1048576
+          default: 65536
+      responses:
+        '200':
+          description: Exactly bytes ASCII x bytes; metadata excluded from payload
+            length. No compression or caching.
+          headers:
+            X-Server-Time:
+              schema: &id004
+                type: string
+                format: date-time
+            Content-Length:
+              schema:
+                type: integer
+            Cache-Control:
+              schema:
+                type: string
+                const: no-store, no-transform
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid byte count
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    servers:
+    - url: http://127.0.0.1:8083
+components:
+  schemas:
+    RawRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId: &id001
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: \S
+        taskId: *id001
+        privacyLevel: &id002
+          type: string
+          enum:
+          - NORMAL
+          - CRITICAL
+          description: CRITICAL is rejected with 403. Caller must prevent any outbound
+            transmission before this check.
+        samples:
+          type: array
+          items:
+            type: number
+            minimum: -1000000
+            maximum: 1000000
+          minItems: 8
+          maxItems: 4096
+      required:
+      - requestId
+      - taskId
+      - privacyLevel
+      - samples
+    HybridRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId: *id001
+        taskId: *id001
+        privacyLevel: *id002
+        featureSchemaVersion:
+          type: string
+          const: features-v1
+        features:
+          type: array
+          items:
+            type: number
+            minimum: -2000000
+            maximum: 2000000
+          minItems: 8
+          maxItems: 8
+      required:
+      - requestId
+      - taskId
+      - privacyLevel
+      - featureSchemaVersion
+      - features
+    Prediction:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId: *id001
+        prediction:
+          type: string
+          enum:
+          - NORMAL
+          - ANOMALY
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        modelVersion: &id003
+          type: string
+        inferenceTimeMs:
+          type: number
+          minimum: 0
+      required:
+      - requestId
+      - prediction
+      - confidence
+      - modelVersion
+      - inferenceTimeMs
+    HybridOutput:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId: *id001
+        modelVersion: *id003
+        classProbabilities:
+          type: object
+          additionalProperties: false
+          properties:
+            NORMAL:
+              type: number
+              minimum: 0
+              maximum: 1
+            ANOMALY:
+              type: number
+              minimum: 0
+              maximum: 1
+          required:
+          - NORMAL
+          - ANOMALY
+        inferenceTimeMs:
+          type: number
+          minimum: 0
+      required:
+      - requestId
+      - modelVersion
+      - classProbabilities
+      - inferenceTimeMs
+    Health:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          const: UP
+        service: *id003
+      required:
+      - status
+      - service
+    Readiness:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - READY
+          - NOT_READY
+        modelVersion: *id003
+        modelSha256: *id003
+      required:
+      - status
+      - modelVersion
+      - modelSha256
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId:
+          anyOf:
+          - *id001
+          - type: 'null'
+        code: *id003
+        message: *id003
+        details:
+          type: object
+        timestamp: *id004
+      required:
+      - requestId
+      - code
+      - message
+      - details
+      - timestamp
+    Task:
+      type: object
+      additionalProperties: false
+      properties:
+        taskId: *id001
+        taskType:
+          type: string
+          const: SENSOR_ANOMALY
+        complexity:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+        dataSizeBytes: &id005
+          type: integer
+          minimum: 1
+          maximum: 1048576
+        estimatedFeatureBytes: *id005
+        estimatedResultBytes: *id005
+      required:
+      - taskId
+      - taskType
+      - complexity
+      - dataSizeBytes
+      - estimatedFeatureBytes
+      - estimatedResultBytes
+    Device:
+      type: object
+      additionalProperties: false
+      properties:
+        cpuPercent:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 100
+        ramPercent:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 100
+        batteryPercent:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 100
+        source: &id006
+          type: string
+          enum:
+          - MEASURED
+          - SIMULATED
+          - ESTIMATED
+          - CALIBRATED
+      required:
+      - source
+    Network:
+      type: object
+      additionalProperties: false
+      properties:
+        connected: &id007
+          type: boolean
+        bandwidthMbps:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0
+          - type: 'null'
+        networkLatencyMs:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        sampledAt:
+          anyOf:
+          - *id004
+          - type: 'null'
+        source: *id006
+      required:
+      - connected
+      - source
+    EstimateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId: *id001
+        task:
+          $ref: '#/components/schemas/Task'
+        device:
+          anyOf:
+          - $ref: '#/components/schemas/Device'
+          - type: 'null'
+        network:
+          $ref: '#/components/schemas/Network'
+        edgeCapable: *id007
+        cloudCapable: *id007
+        remainingDeadlineMs:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        edgeCarbonIntensityGPerKwh:
+          type: number
+          minimum: 0
+        cloudCarbonIntensityGPerKwh:
+          type: number
+          minimum: 0
+      required:
+      - requestId
+      - task
+      - network
+      - edgeCapable
+      - cloudCapable
+      - edgeCarbonIntensityGPerKwh
+      - cloudCarbonIntensityGPerKwh
+    RouteEstimate:
+      type: object
+      additionalProperties: false
+      properties:
+        estimateAvailable: *id007
+        reason:
+          anyOf:
+          - *id003
+          - type: 'null'
+        estimatedLatencyMs:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        energyEstimateJ:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        deviceEnergyEstimateJ:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        cloudEnergyEstimateJ:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        transferEnergyEstimateJ:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        carbonEstimateG:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        communicationMb:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+        uploadBytes:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        downloadBytes:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        resourcePressure:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+          maximum: 1
+        source:
+          type: string
+          const: ESTIMATED
+      required:
+      - estimateAvailable
+      - reason
+      - estimatedLatencyMs
+      - energyEstimateJ
+      - deviceEnergyEstimateJ
+      - cloudEnergyEstimateJ
+      - transferEnergyEstimateJ
+      - carbonEstimateG
+      - communicationMb
+      - uploadBytes
+      - downloadBytes
+      - resourcePressure
+      - source
+    EstimateResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        requestId: *id001
+        calibrationVersion: *id003
+        calibrationSource:
+          type: string
+          const: ASSUMED
+        estimates:
+          type: object
+          additionalProperties: false
+          properties:
+            EDGE:
+              $ref: '#/components/schemas/RouteEstimate'
+            CLOUD:
+              $ref: '#/components/schemas/RouteEstimate'
+            HYBRID:
+              $ref: '#/components/schemas/RouteEstimate'
+          required:
+          - EDGE
+          - CLOUD
+          - HYBRID
+      required:
+      - requestId
+      - calibrationVersion
+      - calibrationSource
+      - estimates

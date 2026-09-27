@@ -1,0 +1,15 @@
+{
+  "requestId": "req-001",
+  "taskId": "sample-001",
+  "privacyLevel": "NORMAL",
+  "samples": [
+    0.2,
+    -0.1,
+    0.3,
+    0.4,
+    -0.2,
+    0.1,
+    0,
+    0.2
+  ]
+}
