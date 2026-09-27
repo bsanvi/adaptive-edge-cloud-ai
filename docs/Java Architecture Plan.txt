@@ -1,0 +1,689 @@
+ADAPTIVE EDGE-CLOUD AI
+COMPLETE JAVA ARCHITECTURE AND FOUR-PERSON DEVELOPMENT PLAN
+Version: 1.0 design baseline | 27 September 2026
+
+PURPOSE AND STATUS
+==================
+This is an implementation blueprint for a two-laptop academic prototype. It adapts the attached project specification to Java and incorporates the agreed, rebalanced division of work. It is a design document, not a claim that the software has already been implemented. All concrete API names, values, formulas, thresholds, model features, and versions below are proposed contracts for the team to approve and freeze before the four branches begin. Where measurements or coefficients need calibration, that is stated explicitly.
+
+The research question is: Given the current task, device, network, privacy, deadline, energy, and sustainability conditions, should an AI inference run locally (EDGE), on a remote laptop (CLOUD), or partly on each (HYBRID)?
+
+The system first eliminates invalid routes, then compares estimated costs of valid routes, executes one route, records what actually happened, and explains the outcome. A simple AI classifier performs the actual workload; the route selector is an explainable rule-and-score engine, not a trained placement model. The initial prototype uses two laptops on the same private Wi-Fi network. Laptop 2 represents a cloud node; no commercial cloud account is required.
+
+CONTENTS
+========
+ 1. Scope and success criteria
+ 2. Technology and deployment
+ 3. Four-person ownership
+ 4. Repository and module layout
+ 5. Frozen terminology, units, and data rules
+ 6. AI workload and genuine Hybrid execution
+ 7. End-to-end request flow
+ 8. Person 1: Edge agent
+ 9. Person 2: Decision service
+10. Person 3: Cloud service and route estimator
+11. Person 4: Dashboard and orchestrator
+12. HTTP contract and JSON examples
+13. Estimation and decision mathematics
+14. Data storage, experiments, and evaluation
+15. Demo Mode and five scenarios
+16. Failure behavior and privacy
+17. Testing and acceptance
+18. Git workflow and integration
+19. Two-laptop runbook
+20. Research interpretation and future work
+21. Configuration and pre-branch freeze checklist
+22. Reference links
+
+1. SCOPE AND SUCCESS CRITERIA
+=============================
+Functional behavior:
+* Accept a task with numeric sensor samples and explicit task requirements.
+* Profile its complexity, data size, privacy, deadline, and priority.
+* Sample CPU, RAM, and battery on the Edge device; measure Cloud reachability, round-trip latency, and a probe-based bandwidth estimate.
+* Estimate latency, energy, resource pressure, transmitted bytes, and carbon for EDGE, CLOUD, and HYBRID.
+* Reject routes that violate privacy, connectivity, capability, or deadline constraints.
+* Score feasible routes with a task-priority profile and avoid switching for insignificant gains.
+* Perform the selected inference; if a remote execution fails, consider a permissible Edge fallback.
+* Show route estimates, scores, rejection reasons, prediction, times, fallback, and history on a dashboard.
+* Run controlled demo scenarios and compare Edge-only, Cloud-only, and Adaptive policies.
+
+Nonfunctional goals: explainable outcomes, independent module tests, measured-versus-estimated labeling, repeatable demonstrations, bounded timeouts, no committed secrets, reproducible builds, and graceful failures. No claim of precise physical energy measurement without instrumentation; no claim that simulated values are live.
+
+Out of scope for v1: reinforcement learning, automatic model retraining, real hyperscale cloud, multi-node scheduling, transferring model weights per request, exact hardware power metering, arbitrary user-uploaded models, and a universal privacy policy.
+
+2. TECHNOLOGY AND DEPLOYMENT
+============================
+Proposed baseline: JDK 25, Spring Boot 4.1.1, Maven Wrapper, Maven multi-module reactor, Spring MVC REST/Jackson, Java HttpClient or Spring RestClient, Bean Validation, JUnit, OSHI for device monitoring, ONNX Runtime Java for inference, Thymeleaf plus small JavaScript charts for the dashboard, H2 file database, Flyway migrations, and WireMock for orchestrator HTTP tests. Pin exact library and plugin versions in the parent POM after a clean-clone compatibility build on both Windows laptops. Spring Boot's documented Java compatibility covers JDK 25; test the chosen OSHI, ONNX Runtime native binaries, chart library, and other dependencies on the actual machines.
+
+Laptop 1 (Edge laptop) runs:
+  dashboard-orchestrator  :8080 (Person 4)
+  edge-agent              :8081 (Person 1)
+  decision-service        :8082 (Person 2)
+  route-estimator         :8084 (Person 3)
+  H2 file                local to dashboard-orchestrator
+
+Laptop 2 (Cloud laptop) runs:
+  cloud-service           :8083 (Person 3), reachable from Laptop 1
+
+Important deployment choice: Person 3 owns TWO Java modules. The route-estimator must run on Laptop 1 so that it still provides Edge estimates when the Cloud laptop or Wi-Fi is unavailable. The cloud-service supplies actual remote inference and the network probe on Laptop 2. This avoids making cost estimation depend on the network that it is supposed to evaluate. The two modules share frozen schemas rather than a live dependency on one another.
+
+The dashboard/orchestrator is the ONLY service that coordinates other services. The decision service neither runs inference nor calls Cloud. Route-estimator makes no remote call. Cloud does not make placement decisions. Edge does not store decision history.
+
+The two processes on Laptop 1 may be separate from a real edge node in a future deployment; in this prototype, local REST calls keep branch ownership and testing independent. Bind 8080/8081/8082/8084 to loopback. Bind Cloud 8083 to 0.0.0.0 only on a trusted private network with a firewall rule scoped to that network.
+
+3. FOUR-PERSON OWNERSHIP
+========================
+Person 1 — EDGE SYSTEM. Sole owner of edge-agent/**. Implements OSHI CPU/RAM/battery sampling, local model loading and inference, Edge timing, Hybrid feature extraction, Hybrid result postprocessing, simulated metric provider, Edge REST API and tests. Does not profile tasks, choose routes, estimate global costs, build the dashboard, or own the database.
+
+Person 2 — DECISION ENGINE. Sole owner of decision-service/**. Implements hard privacy/network/capability/deadline constraints, fixed-scale normalization, task-priority weights, score calculation, hysteresis, tie-breaking, route explanation, decision REST API and scenario tests. Receives complete estimates as JSON. Does not calculate raw energy, carbon, upload time, or cloud inference predictions.
+
+Person 3 — CLOUD + COST ESTIMATION. Sole owner of cloud-service/** and route-estimator/**. Cloud runs the same frozen inference model and accepts both raw and preprocessed Hybrid input. Estimator uses local measurements/calibration data supplied by Person 4 to estimate all three routes, including communication, energy, and carbon. Implements health/probe endpoints, both services' tests and documentation. Estimate service remains local on Laptop 1.
+
+Person 4 — ORCHESTRATION + DASHBOARD. Sole owner of dashboard-orchestrator/**. Owns task profiling, network measurements, clients for four other services, route execution, Cloud/Hybrid failure fallback, result timing, logging and schema migrations, Demo Mode, dashboard, and evaluation. Develops and tests against frozen API fixtures/WireMock without waiting for live services.
+
+The integration owner (one of the four, nominated before coding) creates/fixes the common skeleton and contracts ONCE on main. Any change to contracts during parallel work requires agreement and a new shared baseline. Module ownership is by folder, so independent feature branches should rarely conflict.
+
+4. REPOSITORY AND MODULE LAYOUT
+===============================
+adaptive-edge-cloud-ai/
+  pom.xml                           Parent aggregator, frozen on main
+  mvnw, mvnw.cmd, .mvn/wrapper/     Maven Wrapper committed
+  .gitignore, .env.example, README.md
+  contracts/
+    openapi.yaml                     Authoritative paths/schemas
+    schemas/                         JSON Schema examples if useful
+    fixtures/                        Requests, responses, golden model cases
+    model/                           Frozen model file + metadata/checksum
+    DECISIONS.md                     Unit, privacy, deadline, scoring semantics
+  edge-agent/
+    pom.xml
+    src/main/java/.../edge/{api,monitor,inference,hybrid,config}
+    src/test/java/...
+    README.md
+  decision-service/
+    pom.xml
+    src/main/java/.../decision/{api,constraints,normalize,score,switching,explain}
+    src/test/java/...
+    README.md
+  cloud-service/
+    pom.xml
+    src/main/java/.../cloud/{api,inference,probe,config}
+    src/test/java/...
+    README.md
+  route-estimator/
+    pom.xml
+    src/main/java/.../estimate/{api,latency,energy,carbon,calibration}
+    src/test/java/...
+    README.md
+  dashboard-orchestrator/
+    pom.xml
+    src/main/java/.../orchestrator/{api,profile,network,client,execute,logging,demo,evaluation}
+    src/main/resources/templates/
+    src/main/resources/static/
+    src/main/resources/db/migration/V1__decision_log.sql
+    src/test/java/...
+    README.md
+  .github/workflows/ci.yml
+
+No module depends on another developer's Java implementation at build time. Every service defines its own Java records/DTOs from the frozen OpenAPI schema, or the integration owner may provide a frozen contracts-only generated JAR before branching. Do not add a shared source module mid-branch. Both Edge and Cloud package the same model bytes and checksum, copied from contracts/model as part of the frozen skeleton; both test against the same golden examples.
+
+Parent POM: packaging=pom; modules are the five folders above; dependency management centrally pins Spring Boot, plugins and Java release. All submodules inherit it. REST servers package executable jars. Each can run with mvnw.cmd -pl MODULE spring-boot:run from the repository root. Use Maven reactor flags -am if later adding genuinely shared build modules.
+
+5. FROZEN TERMINOLOGY, UNITS, AND DATA RULES
+============================================
+All JSON uses camelCase and UTF-8. Time is ISO 8601 UTC on the wire; elapsed durations are double precision milliseconds. HTTP content type is application/json. API base prefix is /api/v1. All requests include requestId for correlation; taskId identifies a task; repeated taskId values in different runs get separate requestId values.
+
+Enums:
+  Route: EDGE | CLOUD | HYBRID
+  PrivacyLevel: NORMAL | CRITICAL
+  Complexity: LOW | MEDIUM | HIGH
+  PriorityProfile: BALANCED | REAL_TIME | BATTERY_SAVER | SUSTAINABILITY
+  MetricSource: MEASURED | SIMULATED | ESTIMATED | CALIBRATED
+  DemoPreset: NORMAL | HEAVY_GOOD_NETWORK | POOR_NETWORK |
+              PRIVACY_CRITICAL | LOW_BATTERY
+  EvaluationPolicy: EDGE_ONLY | CLOUD_ONLY | ADAPTIVE
+
+Task types: SENSOR_ANOMALY is the v1 workload. A task input is an array of finite floating-point samples with 8 to 4096 elements. Do not claim accuracy for arbitrary unrelated workloads.
+
+Units and semantics:
+  dataSizeBytes, uploadBytes, downloadBytes: bytes (base-10 conversions for MB)
+  latencyMs, deadlineMs, decisionTimeMs, executionTimeMs: milliseconds
+  bandwidthMbps: megabits per second, positive when connected
+  cpuPercent, ramPercent, batteryPercent: 0..100, battery nullable if unsupported
+  energyEstimateJ: joules, nonnegative
+  carbonEstimateG: grams CO2-equivalent, nonnegative
+  communicationMb: decimal megabytes actually sent plus received
+  resourcePressure: 0..1 estimate of relative local resource burden
+  score: dimensionless 0..1, lower is better; rejected routes have null score
+  confidence: nullable 0..1; present only for a model that returns probabilities
+  networkLatencyMs: full round-trip time (RTT), never a one-way measurement
+
+All metrics must carry provenance or be grouped in measured/simulated/estimated fields. Unknown battery is null, not zero and not "low." Unavailable network has connected=false and nullable latency/bandwidth; no infinity, NaN or negative sentinels in JSON. Null estimate components must not silently become zero. Task deadline is a relative end-to-end budget starting when the orchestrator accepts the request. Estimator and decision service use the remaining budget at decision time; orchestrator verifies the remaining time again before remote execution. Deadline feasibility is an estimate, and actual misses are recorded.
+
+Privacy CRITICAL means raw samples AND derived features must remain on Laptop 1. Therefore both CLOUD and HYBRID are invalid. NORMAL permits either. A future policy permitting sanitized features would require a new enum and explicit review, not a silent exception.
+
+6. AI WORKLOAD AND GENUINE HYBRID EXECUTION
+===========================================
+Concrete example: binary sensor-anomaly classification with a frozen small ONNX classifier. Input is a bounded array of numeric samples. A frozen feature specification (order, data types, scaling, missing-value policy, model label mapping) and a frozen ONNX file are created BEFORE parallel work. If a suitable model is unavailable, create and validate it as a pre-branch integration-owner task. Training or conversion may happen offline; Java is used for all running services. Store training provenance/license and checksum. Do not claim a model or golden predictions exist until they have actually been generated and verified.
+
+Shared feature contract (proposal): eight float32 values, ordered mean, standardDeviation, minimum, maximum, rootMeanSquare, peakToPeak, zeroCrossingRate, and positiveFraction. Define standardDeviation as population deviation; zero crossing means adjacent samples with opposite nonzero signs; document zero handling. Store the input normalizer's constants and label mapping with the model. If this feature design does not fit the actual model, freeze an alternative before coding and update the whole contract.
+
+EDGE route: Dashboard sends raw samples to Edge; Edge extracts features, runs the local ONNX model, maps output label, and returns prediction/confidence.
+
+CLOUD route: Dashboard sends raw samples to Cloud; Cloud extracts the same features on Laptop 2, runs the same ONNX model, and returns prediction/confidence. The full raw payload crosses Wi-Fi.
+
+HYBRID route: Dashboard sends raw samples to Edge preprocess; Edge extracts the eight features (a meaningful computation and often a smaller transfer). Dashboard sends ONLY features to Cloud hybrid infer; Cloud runs ONNX and returns class probabilities or model output; Dashboard passes that output to Edge postprocess, which maps label, applies the frozen threshold and supplies the final prediction. All three stages and bytes transferred are recorded. Cloud never receives raw samples in this mode. For CRITICAL privacy, this route remains prohibited despite reduced data size.
+
+For identical input, the three routes must agree on prediction within a documented floating-point tolerance. Confirm that Hybrid processing actually runs on both laptops, and log each stage. Preprocessing is useful only when the feature payload is smaller and meaningful for the model; the estimator uses actual serialized byte lengths. A tiny input might make Hybrid unattractive.
+
+7. END-TO-END REQUEST FLOW
+==========================
+ 1. POST task to Dashboard. Validate size/ranges, assign requestId, start wall timer.
+ 2. Person 4 profiles complexity using documented thresholds/calibrated expected runtime; never infer privacy or deadline without explicit user values/default rules.
+ 3. Call Edge metrics. Probe Cloud with bounded request, measure RTT and bandwidth sample; cache very briefly with age/source visible. Demo Mode may override the context for decisions while labeling the values SIMULATED.
+ 4. Ask local route-estimator for all three route estimates using the task profile, actual payload sizes, CPU/RAM/battery, network observations, and calibration/config.
+ 5. Compute remaining deadline and call decision-service with requirements, metrics, estimates, previous successful route for that workload key, and profile.
+ 6. Decision service rejects infeasible routes, normalizes costs, scores feasible routes, applies hysteresis, and returns selected route, all estimates/scores/rejection reasons, and decision time.
+ 7. Dashboard rechecks deadline budget and executes EDGE, CLOUD or HYBRID. No model is moved during switching.
+ 8. If remote path fails, log failure, check Edge privacy/capability/deadline feasibility using current remaining time and estimate; perform Edge fallback when valid. If invalid, return a clear failure, with a persisted attempt record. Never mask failure as a successful Cloud inference.
+ 9. Record selectedRoute, actualRoute, measured timings, estimated energy/carbon, prediction, fallback, and any deadline miss. Update last successful route for the same workload key only after success.
+10. Render response/dashboard and make experiment log available for export.
+
+Normal call order uses four local HTTP services plus remote Cloud execution. /health and /probe use GET; inference and estimation/decision endpoints use POST. Network monitoring may call Cloud /probe even when Cloud inference is not selected, and that probe overhead must be included separately in orchestration overhead, not model execution time.
+
+8. PERSON 1 — EDGE AGENT
+=======================
+Classes/responsibilities:
+* SystemMonitor: OSHI CPU percentage over a nonzero interval, used/total physical RAM, power source and battery capacity if available. Cache a recent sample; do not block every inference for a full-second CPU sample. Report null battery on a desktop/unavailable sensor.
+* MetricsProvider: LIVE or demo-injected values; simulation changes reported decision context, not actual hardware state.
+* FeatureExtractor: exactly the frozen feature contract.
+* OnnxLocalExecutor: initializes model once, checks SHA-256 on startup, manages thread-safe inference and native resources, validates model input/output.
+* HybridPreprocessor and HybridPostprocessor: feature creation and final label mapping.
+* EdgeController: validation, stage timing and structured error handling.
+
+Endpoints:
+  GET  /api/v1/edge/health
+  GET  /api/v1/edge/metrics
+  POST /api/v1/edge/predict
+  POST /api/v1/edge/hybrid/preprocess
+  POST /api/v1/edge/hybrid/postprocess
+
+Acceptance: metrics report source and nullable battery; local prediction matches frozen cases; preprocess output equals expected feature vector; postprocess matches frozen threshold; malformed array returns 400; service works standalone at 8081; all unit tests avoid depending on the Cloud laptop.
+
+9. PERSON 2 — DECISION SERVICE
+===============================
+Components: ConstraintChecker, MetricNormalizer, PriorityProfileRegistry, Scorer, SwitchingPolicy, ExplanationBuilder, DecisionController. Request is self-contained; service keeps no implicit global last-route state. The orchestrator passes previousRoute for a workload key, and decision response says whether a route change was proposed.
+
+Order:
+ A. Mark CLOUD and HYBRID invalid if CRITICAL privacy.
+ B. Mark CLOUD and HYBRID invalid if disconnected or probe expired/unavailable.
+ C. Reject any route that cannot run on its required node or has missing mandatory estimate.
+ D. Reject a route if estimatedLatencyMs exceeds remainingDeadlineMs, if deadline supplied. Equality is feasible. Report exact reason.
+ E. If none feasible, return structured 422 NO_FEASIBLE_ROUTE, preserving rejection details.
+ F. Normalize five estimated dimensions with fixed calibrated scales; apply one profile's weights.
+ G. Choose lowest score; tie order EDGE, HYBRID, CLOUD within an epsilon of 1e-9.
+ H. If previousRoute is still feasible, switch only if its score minus best new score is >= SWITCH_THRESHOLD (default proposal 0.10 absolute score units). If previousRoute is invalid, bypass hysteresis. PreviousRoute null means choose best.
+ I. Return full scores, route reasons, previousRoute, selectedRoute and decisionTimeMs.
+
+Priority weights (prototype assumptions, each row sums to 1):
+                     latency  energy  resource  communication  carbon
+  BALANCED             0.30    0.20     0.20       0.15          0.15
+  REAL_TIME            0.55    0.10     0.15       0.10          0.10
+  BATTERY_SAVER         0.15    0.40     0.25       0.10          0.10
+  SUSTAINABILITY        0.15    0.25     0.10       0.10          0.40
+
+These are illustrative configuration defaults, not scientifically established optimal weights. Document them, let experiments test sensitivity, and describe AHP as a possible future way to derive weights. Privacy and deadlines are hard constraints, not weighted score dimensions. Low battery may increase energy's relevance via an explicitly chosen BATTERY_SAVER profile; never force Cloud solely because the battery is low.
+
+Endpoint: POST /api/v1/decision/evaluate; GET /api/v1/decision/health. Acceptance: privacy rejects remote routes regardless of scores; no network rejects remote routes; strict deadline rejects infeasible route; scores deterministic and bounded; hysteresis cases 0.50 vs 0.48 stays and 0.80 vs 0.40 switches at 0.10; no feasible route yields 422; standalone tests use fixture JSON only.
+
+10. PERSON 3 — CLOUD SERVICE AND ROUTE ESTIMATOR
+================================================
+cloud-service on Laptop 2:
+* Same ONNX file/checksum, feature extractor, preprocessing and output mapping as Edge.
+* CloudAiExecutor for raw samples; HybridCloudExecutor for frozen feature vector.
+* ProbeController returns a predictable byte payload on a bounded size request, plus server time. Client measures RTT/throughput. Probe response is never used as a "free" benchmark for arbitrary file sizes; record sampling limitations.
+* Endpoints:
+    GET  /api/v1/cloud/health
+    GET  /api/v1/cloud/probe?bytes=65536
+    POST /api/v1/cloud/predict
+    POST /api/v1/cloud/hybrid/infer
+
+route-estimator on Laptop 1:
+* CalibrationRepository loads small documented per-complexity expected Edge/Cloud inference times, preprocess/postprocess times, expected result sizes and power coefficients. Include a calibration script/procedure to benchmark repeatedly and store medians, device identifiers and date. Initial values may be explicit prototype assumptions.
+* LatencyEstimator, EnergyEstimator, TransmissionEnergyEstimator, CarbonEstimator, CommunicationCostEstimator and RouteEstimateService calculate all three routes from supplied context, including when network is disconnected.
+* Endpoint POST /api/v1/estimate/routes and GET /api/v1/estimate/health.
+* An unreachable network yields EDGE estimate plus CLOUD/HYBRID marked estimateAvailable=false with reason NETWORK_UNAVAILABLE; decision constraints still own final rejection. Unknown energy/carbon coefficients are errors or explicitly labelled assumptions, not silently zero.
+
+Acceptance: both modules run standalone; same golden prediction for EDGE/CLOUD/HYBRID paths; probe returns requested bounded payload; unit tests check dimensional units, zero/low bandwidth, huge payload rejection, no network, remote transfer bytes, and energy/carbon arithmetic. Estimator tests never require Laptop 2.
+
+11. PERSON 4 — DASHBOARD AND ORCHESTRATOR
+=========================================
+Components:
+* TaskProfiler: captures taskId/type, measured serialized input bytes, complexity category and provenance, deadline/privacy/profile chosen or defaults. Example explicit thresholds: sample count <=128 LOW, <=1024 MEDIUM, otherwise HIGH; these are placeholders and must be calibrated/frozen.
+* NetworkMonitor: Cloud health/probe, measured RTT with monotonic clock; bandwidthMbps estimated from response bytes and transfer duration, avoiding double count of RTT. Distinguish probe estimate from a direct physical link measurement; report sample size/time/age.
+* EdgeApiClient, DecisionApiClient, EstimateApiClient, CloudApiClient: timeouts, JSON validation and error mapping; use bounded request sizes and no unbounded retry of inference.
+* AdaptiveOrchestrator: the sequence in section 7; stores previous successful route by workload key (taskType + profile) in H2 so restarts are deterministic; may pass null when no prior record.
+* ExecutionRouter: Edge, Cloud, Hybrid stages; checks privacy before any outbound raw or feature call.
+* FailureFallback: on Cloud/Hybrid timeout, connection error or 5xx, tries Edge only after validating feasibility and remaining deadline. No retry of a non-idempotent inference unless requestId deduplication semantics are frozen; default is no automatic remote retry.
+* DecisionLogger: writes run and route-attempt records. Database unavailable should return explicit persistence error or use a documented temporary buffer; do not silently present an unlogged evaluation.
+* DemoMode: injects a complete simulated decision context without altering actual OSHI readings; show LIVE/SIMULATED badge on each value. Forced offline preset prevents Cloud probe from influencing a simulated network.
+* DashboardController and EvaluationService: submit/run/history/CSV, aggregate comparative metrics.
+
+Dashboard routes:
+  GET  /                         main dashboard
+  POST /api/v1/tasks/run         full adaptive task execution
+  GET  /api/v1/runs/{requestId}  saved run detail
+  GET  /api/v1/runs              paged history
+  GET  /api/v1/runs/export       CSV download of bounded/filtered runs
+  POST /api/v1/evaluation/run    controlled Edge-only/Cloud-only/Adaptive batch
+  GET  /api/v1/dashboard/health
+
+Display: live/simulated CPU, RAM, battery; network status, RTT, bandwidth; task properties; three route estimates, feasibility/reasons/scores; selected versus actual route; stage timings; final prediction/confidence; decision and total time; energy/carbon estimates with provenance; fallback/switching reason; history and policy comparison. Escape rendered task data; do not show private raw samples in history by default.
+
+12. HTTP CONTRACT AND JSON EXAMPLES
+====================================
+Every endpoint's exact schemas, required/nullability, enum values, range bounds and status codes belong in contracts/openapi.yaml. These examples are illustrative and become authoritative only after team approval. POST bodies use requestId; responses echo it. Trace it through logs. Default timeout suggestions: 250 ms for local health/metrics/decision/estimation after warmup, 2 s for remote probe, and min(5 s, remaining deadline) for remote inference. Tune on measured hardware and record timeouts in configuration. Never call a remote endpoint for CRITICAL tasks.
+
+Task submitted to Dashboard:
+POST /api/v1/tasks/run
+{
+  "taskId": "sample-001",
+  "taskType": "SENSOR_ANOMALY",
+  "samples": [0.2, -0.1, 0.3, 0.4, -0.2, 0.1, 0.0, 0.2],
+  "privacyLevel": "NORMAL",
+  "deadlineMs": 1000.0,
+  "priorityProfile": "BALANCED",
+  "demoPreset": null
+}
+The orchestrator assigns requestId; clients must not rely on requestId being supplied by the browser. Unknown enum values and invalid nonfinite samples return 400.
+
+Edge metrics response:
+{
+  "requestId": "req-001",
+  "sampledAt": "2026-09-27T08:00:00Z",
+  "cpuPercent": 87.0,
+  "ramPercent": 72.0,
+  "batteryPercent": 42.0,
+  "source": "MEASURED"
+}
+
+Network observation, created by Person 4:
+{
+  "connected": true,
+  "networkLatencyMs": 18.0,
+  "bandwidthMbps": 32.0,
+  "probeBytes": 65536,
+  "sampledAt": "2026-09-27T08:00:00Z",
+  "source": "MEASURED"
+}
+
+Estimate request to Person 3 (all fields validated):
+{
+  "requestId": "req-001",
+  "task": {
+    "taskId": "sample-001", "taskType": "SENSOR_ANOMALY",
+    "complexity": "LOW", "dataSizeBytes": 91,
+    "estimatedFeatureBytes": 90, "estimatedResultBytes": 80
+  },
+  "device": {
+    "cpuPercent": 87.0, "ramPercent": 72.0, "batteryPercent": 42.0
+  },
+  "network": {
+    "connected": true, "networkLatencyMs": 18.0, "bandwidthMbps": 32.0
+  },
+  "carbonIntensityGPerKwh": 500.0
+}
+Actual serialized payload sizes, including JSON overhead, should replace the rough values in this example. Prefer a canonical serialization helper/fixture to keep estimate errors visible.
+
+Estimator response shape:
+{
+  "requestId": "req-001",
+  "calibrationVersion": "demo-v1",
+  "estimates": {
+    "EDGE": {
+      "estimateAvailable": true,
+      "estimatedLatencyMs": 340.0,
+      "energyEstimateJ": 7.2,
+      "carbonEstimateG": 0.0010,
+      "uploadBytes": 0, "downloadBytes": 0,
+      "communicationMb": 0.0, "resourcePressure": 0.85,
+      "source": "ESTIMATED"
+    },
+    "CLOUD": {
+      "estimateAvailable": true,
+      "estimatedLatencyMs": 160.0,
+      "energyEstimateJ": 3.1,
+      "carbonEstimateG": 0.0020,
+      "uploadBytes": 91, "downloadBytes": 80,
+      "communicationMb": 0.000171, "resourcePressure": 0.15,
+      "source": "ESTIMATED"
+    },
+    "HYBRID": {
+      "estimateAvailable": true,
+      "estimatedLatencyMs": 210.0,
+      "energyEstimateJ": 4.0,
+      "carbonEstimateG": 0.0015,
+      "uploadBytes": 90, "downloadBytes": 80,
+      "communicationMb": 0.000170, "resourcePressure": 0.40,
+      "source": "ESTIMATED"
+    }
+  }
+}
+Numbers above merely illustrate response shape; they are not calibrated calculations. A short eight-sample request might make HYBRID slower or use similar bytes to CLOUD.
+
+Decision request to Person 2:
+{
+  "requestId": "req-001",
+  "privacyLevel": "NORMAL",
+  "remainingDeadlineMs": 850.0,
+  "priorityProfile": "BALANCED",
+  "previousRoute": "EDGE",
+  "networkConnected": true,
+  "cloudCapable": true,
+  "edgeCapable": true,
+  "estimates": { "EDGE": { "...": "same route estimate schema" },
+                 "CLOUD": { "...": "same route estimate schema" },
+                 "HYBRID": { "...": "same route estimate schema" } }
+}
+Literal ellipses are for this document only; fixtures/OpenAPI must contain full concrete JSON.
+
+Decision response:
+{
+  "requestId": "req-001",
+  "selectedRoute": "CLOUD",
+  "previousRoute": "EDGE",
+  "switchProposed": true,
+  "switchReason": "Score improvement exceeds threshold",
+  "scores": { "EDGE": 0.62, "CLOUD": 0.41, "HYBRID": 0.48 },
+  "rejectedRoutes": {},
+  "explanation": [
+    "Cloud is permitted for NORMAL privacy",
+    "Estimated Cloud latency fits the remaining deadline",
+    "Cloud has the lowest feasible score"
+  ],
+  "decisionTimeMs": 1.8
+}
+For a rejected route, score is null and rejectedRoutes maps route to an array of machine codes and human-readable reasons. When no route is feasible, HTTP 422 returns the same route rejection details inside an error envelope.
+
+Inference bodies and responses:
+POST /api/v1/edge/predict or /api/v1/cloud/predict:
+  { "requestId":"req-001", "taskId":"sample-001",
+    "samples":[0.2,-0.1,0.3,0.4,-0.2,0.1,0.0,0.2] }
+  -> { "requestId":"req-001", "prediction":"NORMAL",
+       "confidence":0.91, "modelVersion":"anomaly-v1",
+       "inferenceTimeMs":12.4 }
+
+POST /api/v1/edge/hybrid/preprocess:
+  { "requestId":"req-001", "taskId":"sample-001", "samples":[...] }
+  -> { "requestId":"req-001", "featureSchemaVersion":"features-v1",
+       "features":[... exactly eight finite values ...],
+       "preprocessTimeMs":2.1 }
+
+POST /api/v1/cloud/hybrid/infer:
+  { "requestId":"req-001", "taskId":"sample-001",
+    "featureSchemaVersion":"features-v1", "features":[...] }
+  -> { "requestId":"req-001", "modelVersion":"anomaly-v1",
+       "classProbabilities":{"NORMAL":0.91,"ANOMALY":0.09},
+       "inferenceTimeMs":9.2 }
+
+POST /api/v1/edge/hybrid/postprocess:
+  { "requestId":"req-001", "taskId":"sample-001",
+    "modelVersion":"anomaly-v1",
+    "classProbabilities":{"NORMAL":0.91,"ANOMALY":0.09} }
+  -> { "requestId":"req-001", "prediction":"NORMAL",
+       "confidence":0.91, "postprocessTimeMs":0.4 }
+
+All numeric examples are sample payloads, not golden model outputs. Create true fixture outputs from the frozen model. Either route may return an explicit no-confidence value if the actual frozen model lacks probabilities; then change this contract before branching.
+
+Common errors:
+  400 VALIDATION_ERROR / BAD_ENUM / OUT_OF_RANGE
+  409 CONTRACT_VERSION_MISMATCH / MODEL_VERSION_MISMATCH
+  422 NO_FEASIBLE_ROUTE (decision) or DEADLINE_EXCEEDED (orchestrator)
+  502 UPSTREAM_FAILURE / INFERENCE_FAILURE
+  503 SERVICE_UNAVAILABLE / ESTIMATOR_UNAVAILABLE / NETWORK_UNAVAILABLE
+  504 UPSTREAM_TIMEOUT
+Body:
+{
+  "requestId": "req-001",
+  "code": "NO_FEASIBLE_ROUTE",
+  "message": "No route meets the task requirements",
+  "details": {
+    "EDGE": ["DEADLINE_EXCEEDED"],
+    "CLOUD": ["PRIVACY_CRITICAL"],
+    "HYBRID": ["PRIVACY_CRITICAL"]
+  },
+  "timestamp": "2026-09-27T08:00:00Z"
+}
+For run results, report selectedRoute and actualRoute separately, fallbackUsed, prediction, decisionTimeMs, executionTimeMs, totalTimeMs, deadlineMet and estimates with provenance.
+
+13. ESTIMATION AND DECISION MATHEMATICS
+=======================================
+Calibration inputs are documented assumptions or measured medians from repeat runs. Keep coefficients out of code literals.
+
+Transfer time: transferMs = 1000 * 8 * bytes / (bandwidthMbps * 1,000,000).
+Here 1 Mbps = 1,000,000 bits/s. Guard against zero/null bandwidth.
+
+EDGE latency = estimated local feature extraction + local inference + local result processing. Include local REST serialization/dispatch overhead if benchmarked; do not include orchestration probe/decision time as execution time.
+
+CLOUD latency = uploadMs(raw serialized body) + networkLatencyMs (one RTT) + cloud feature extraction + cloud inference + downloadMs(result). If the RTT calibration already includes request overhead, do not add it twice.
+
+HYBRID latency = local preprocessing + uploadMs(feature body) + one networkLatencyMs + cloud inference + downloadMs(model output) + local postprocessing. Local Edge REST hops add measured/calibrated overhead once per hop if materially relevant.
+
+If the cloud probe's throughput estimate includes RTT, calculate steady transfer throughput from payload transfer duration with RTT subtracted or calibrated separately. For small probes this is noisy; show uncertainty and repeat to get medians.
+
+Energy estimate per route: sum of estimated local compute energy, cloud compute energy where applicable, and transmit/receive energy. For component i, E_i = configured average power_i in W * duration_i in seconds. A fallback simpler transfer assumption is energyTransferJ = transmitted decimal MB * configurable J/MB, for both directions. Never use both transfer formulas for the same bytes.
+
+Carbon estimate in grams CO2e = sum over compute nodes of (nodeEnergyJ / 3,600,000) * nodeCarbonIntensityGPerKwh. Account for network energy with a documented allocation/coefficient if included. Carbon intensity is a configurable assumption, not measured by the laptops. Distinguish device-side battery cost from system-wide total energy.
+
+CommunicationMB = (uploadBytes + downloadBytes) / 1,000,000. ResourcePressure is a documented 0..1 estimate of local CPU/RAM burden after adding route load; never use raw CPU percentage as joules.
+
+Normalization is fixed-scale, NOT min-max across this request's three candidates: N(x,cap) = min(1, max(0, x/cap)), with cap > 0. Initial illustrative caps: latency 1000 ms, energy 50 J, resource 1, communication 20 MB, carbon 0.01 g. Calibrate caps and freeze them; record normalizationVersion. Fixed scales prevent a rejected candidate from changing all other scores. Values above caps saturate, so report raw estimates too.
+
+score(route,profile) = sum over the five metrics of weight(profile,metric) * N(metric,cap). Lower is better. Scores remain in [0,1]. Feasibility always precedes scoring. Hysteresis is separate: a switch from previous feasible route is permitted iff score(previous) - score(best) >= threshold. This threshold is absolute score difference (0.10 means ten points on 0..1), not ten percent. If previous route is ineligible, choose best feasible without threshold. Do not double-count switching both as a score component and a threshold unless the team deliberately revises the model.
+
+DecisionTimeMs measures decision-service processing. ExecutionTimeMs measures selected path including network transport and Hybrid stages, from dispatch until prediction. TotalTimeMs measures orchestration from task acceptance to final response, including profiling/monitoring/estimation/decision/logging. For fallback, include failed remote attempt in total and log each attempt separately.
+
+14. DATA STORAGE, EXPERIMENTS, AND EVALUATION
+==============================================
+Only Person 4 owns persistent storage. H2 file mode path is configurable; Flyway creates versioned schema. A proposed baseline schema (rename only before contracts freeze):
+
+CREATE TABLE decision_log (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  request_id VARCHAR(100) NOT NULL UNIQUE,
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  task_id VARCHAR(100) NOT NULL,
+  task_type VARCHAR(40) NOT NULL,
+  priority_profile VARCHAR(30) NOT NULL,
+  complexity VARCHAR(20) NOT NULL,
+  data_size_bytes BIGINT NOT NULL,
+  privacy_level VARCHAR(20) NOT NULL,
+  deadline_ms DOUBLE PRECISION,
+  cpu_percent DOUBLE PRECISION,
+  ram_percent DOUBLE PRECISION,
+  battery_percent DOUBLE PRECISION,
+  network_connected BOOLEAN NOT NULL,
+  network_latency_ms DOUBLE PRECISION,
+  bandwidth_mbps DOUBLE PRECISION,
+  metrics_source VARCHAR(20) NOT NULL,
+  calibration_version VARCHAR(40),
+  normalization_version VARCHAR(40),
+  edge_score DOUBLE PRECISION,
+  cloud_score DOUBLE PRECISION,
+  hybrid_score DOUBLE PRECISION,
+  selected_route VARCHAR(20),
+  actual_route VARCHAR(20),
+  decision_time_ms DOUBLE PRECISION,
+  execution_time_ms DOUBLE PRECISION,
+  total_time_ms DOUBLE PRECISION,
+  energy_estimate_j DOUBLE PRECISION,
+  carbon_estimate_g DOUBLE PRECISION,
+  switch_occurred BOOLEAN,
+  switch_reason VARCHAR(500),
+  fallback_used BOOLEAN NOT NULL,
+  deadline_met BOOLEAN,
+  prediction VARCHAR(100),
+  outcome_code VARCHAR(50) NOT NULL,
+  error_message VARCHAR(500),
+  model_version VARCHAR(40),
+  demo_preset VARCHAR(40)
+);
+
+CREATE TABLE route_attempt (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  request_id VARCHAR(100) NOT NULL,
+  attempt_number INTEGER NOT NULL,
+  route VARCHAR(20) NOT NULL,
+  outcome_code VARCHAR(50) NOT NULL,
+  elapsed_ms DOUBLE PRECISION,
+  bytes_uploaded BIGINT,
+  bytes_downloaded BIGINT,
+  error_message VARCHAR(500),
+  CONSTRAINT fk_attempt_run FOREIGN KEY (request_id)
+    REFERENCES decision_log(request_id)
+);
+
+Store the run row before attempt rows in one transaction, or accumulate attempts and persist atomically at completion; also persist failures. Persist route rejection reasons and full raw route estimates in additional columns/JSON text or a normalized route_estimate table if needed for repeatable paper figures; do not lose them when only scores are saved. Save model/checksum/calibration/profile versions with every run. Never put raw CRITICAL samples in the log.
+
+Evaluation design: run the same frozen dataset/scenarios under EDGE_ONLY, CLOUD_ONLY, and ADAPTIVE. A forced policy may become infeasible: report failure/privacy/deadline violation explicitly and DO NOT silently reroute, or the comparison ceases to represent that baseline. For privacy-critical tasks, Cloud-only should be recorded as ineligible, not sent to Cloud. Record paired task IDs, seed, model version, calibration version, LIVE/SIMULATED mode and run order. Repeat trials and report median, p95, variability and sample count for latency/decision time, completion and deadline/privacy violation rate, device resource and network bytes, estimated energy/carbon, Cloud usage, and route switching count. Separate estimate error (predicted vs observed latency) from simulated conditions. An estimated energy saving is not a measured physical saving.
+
+Feedback v1: log actual latency and compare with estimated latency; update calibration only in a controlled later run/version. No online model retraining is needed.
+
+15. DEMO MODE AND FIVE SCENARIOS
+================================
+Demo Mode substitutes specified values into the decision context and marks each as SIMULATED. Real inferencing still runs unless an explicit fully simulated execution setting is introduced and labeled. Avoid physically draining a battery or overloading a device. A preset must not bypass hard constraints or predetermine the selected route.
+
+NORMAL: CPU 30%, RAM 40%, battery 80%, network RTT 25 ms, bandwidth 30 Mbps, MEDIUM task, NORMAL privacy. EDGE may be chosen when its calculated score is best; no unconditional expected route.
+HEAVY_GOOD_NETWORK: CPU 90%, RAM 75%, battery 40%, RTT 20 ms, bandwidth 80 Mbps, HIGH task, NORMAL privacy. CLOUD/HYBRID may improve score if transfer cost is justified.
+POOR_NETWORK: CPU 80%, RTT 300 ms, bandwidth 2 Mbps, HIGH task, NORMAL privacy. Remote routes may become expensive or fail deadline.
+PRIVACY_CRITICAL: CRITICAL privacy, otherwise healthy network. CLOUD and HYBRID MUST be rejected. EDGE is selected only if it also meets capability/deadline requirements; otherwise 422.
+LOW_BATTERY: battery 15%, good network, NORMAL privacy, BATTERY_SAVER profile. Routing remains determined by feasibility and estimated costs.
+
+Additional demo: disconnected Cloud rejects remote routes; Cloud stops after a CLOUD selection and Edge fallback succeeds if feasible; slight score improvement does not switch; large improvement switches. Dashboard shows selected route and actual route, all measured/simulated badges, and why each rejected route was excluded.
+
+16. FAILURE BEHAVIOR AND PRIVACY
+================================
+* Cloud is down at probe: networkConnected=false; Estimator still runs locally; decision rejects CLOUD and HYBRID.
+* Cloud drops after selection: bounded timeout, record failed attempt; Edge fallback only when feasible and privacy/deadline rules still permit it. If no valid route, return a structured error and keep the failure log.
+* Estimator is down: no fabricated costs. Return 503 ESTIMATOR_UNAVAILABLE (or use a separately documented frozen local cached estimate with age/version, if later approved).
+* Decision service is down: return 503 rather than pretend an optimization took place; a separately labeled emergency Edge mode would be a future contract.
+* Edge is down: EDGE and HYBRID are unavailable. The orchestrator passes edgeCapable=false and nullable device metrics to the estimator/decision service; the estimator must still calculate CLOUD from calibration and network data. Cloud may run only with NORMAL privacy and sufficient deadline. If this degraded mode is not implemented, return 503 instead of claiming Cloud support.
+* Unsupported battery sensor: null battery; score/profile cannot assume battery=0. Document whether BATTERY_SAVER still uses energy estimates independent of battery reading.
+* Bad input, model version mismatch, stale probe, inconsistent or nonfinite estimates: reject explicitly.
+* Remote 4xx: treat as a contract/input error, not an automatic retry/fallback that masks it.
+* Privacy: raw or derived CRITICAL data never leaves Laptop 1. Probe requests contain no task data. Data validation and privacy checks happen before outbound calls. Avoid request-body logging, query strings containing samples, or histories that expose raw samples.
+* Security in demo: private Wi-Fi, restricted 8083 firewall, no public binding of local ports, environment-configured addresses, no secrets in Git. If using untrusted networks, add transport security/authentication before use; the two-laptop prototype is not a production security design.
+
+17. TESTING AND ACCEPTANCE
+===========================
+Contracts: validate request/response examples against OpenAPI and JSON Schema. Freeze one or more true golden model fixtures with expected label, probability tolerance and feature vector; run on both Edge and Cloud. Test serialized size conventions and all enums.
+
+Person 1: CPU sampling behavior, RAM/battery null, metric simulation, feature calculations on edge cases (constant signal, zeros, sign changes), invalid input, local inference, Hybrid pre/post and model checksum.
+Person 2: all hard constraints, all profiles and score caps, no-feasible, tie-break, missing estimates, deadline equality, hysteresis and privacy overrides.
+Person 3: transfer units, RTT counted once, offline estimates, power/time and joule/kWh conversions, calibration version, raw vs features inference equivalence, probe size bounds and model consistency.
+Person 4: WireMock stubs for Edge/Decision/Estimator/Cloud; selected-route execution, actual-route logging, timeout/fallback, no fallback when deadline invalid, CRITICAL never sent outbound, H2 migration and CSV evaluation.
+
+Run per module on its own branch:
+  Windows PowerShell: .\mvnw.cmd -pl edge-agent clean test
+                      .\mvnw.cmd -pl decision-service clean test
+                      .\mvnw.cmd -pl cloud-service clean test
+                      .\mvnw.cmd -pl route-estimator clean test
+                      .\mvnw.cmd -pl dashboard-orchestrator clean test
+  macOS/Linux:       ./mvnw -pl MODULE clean test
+All-from-root integration gate: .\mvnw.cmd clean verify.
+If running per-module -pl tests from a fresh clone, do not introduce unresolved local cross-module dependencies. Tests should not require a live Laptop 2 unless explicitly marked as system tests.
+
+Acceptance gate: all modules start independently; ports and DTOs match contracts; golden model fixtures pass; CRITICAL never transmits data; disconnected Cloud still permits Edge selection; H2 migration starts from an empty database; selected versus actual route is correct on fallback; fresh clone builds; two-laptop system demo passes.
+
+18. GIT WORKFLOW AND INTEGRATION
+================================
+Before branches, the integration owner commits parent POM/Wrapper, empty module skeletons, .gitignore, .env.example, OpenAPI, frozen model+checksum+golden fixtures, calibration assumptions, normalized scales, privacy/deadline semantics, and CI on main. Team reviews the baseline and branches from that SAME commit.
+
+Example commands:
+  git clone https://github.com/ORGANIZATION/adaptive-edge-cloud-ai.git
+  cd adaptive-edge-cloud-ai
+  git switch -c person-1             # substitute assigned number
+  git push -u origin person-1
+  git status
+  git add edge-agent/                # stage only owned folders
+  git commit -m "feat: implement local inference"
+  git push
+
+Ownership rules:
+  person-1 -> edge-agent/**
+  person-2 -> decision-service/**
+  person-3 -> cloud-service/** and route-estimator/**
+  person-4 -> dashboard-orchestrator/**
+  shared main -> contracts/**, root pom.xml, Wrapper, .github/**, .env.example
+
+No one edits shared contracts during main development without a coordinated re-freeze. Each branch uses mocks and fixtures for other people's services. Push incremental tested commits. Protect main with PRs, at least one review, CI status checks and no force-push. No direct development on main.
+
+Feature freeze; final PRs; review and merge in this order: decision-service, edge-agent, cloud-service plus route-estimator together, dashboard-orchestrator. Run full build after each merge. Person 4's module merges last because it calls the others at runtime, although its branch was implemented using mocks. Resolve any true conflict deliberately and rerun tests. The integration owner coordinates Wi-Fi smoke tests, dataset/evaluation, README corrections and optional annotated v1.0.0-demo tag after passing checks.
+
+19. TWO-LAPTOP RUNBOOK
+======================
+Prerequisites: both machines on private Wi-Fi; matching JDK 25; committed Maven Wrapper; repository clone and same commit/tag; model and contract available in the repo. Build on each machine with .\mvnw.cmd clean verify. If shell scripts are used on macOS/Linux, use ./mvnw.
+
+Laptop 2, terminal A:
+  ipconfig                           # find private IPv4, e.g. 192.168.1.25
+  $env:SERVER_ADDRESS = "0.0.0.0"
+  $env:SERVER_PORT = "8083"
+  .\mvnw.cmd -pl cloud-service spring-boot:run
+Allow TCP 8083 through private-network firewall only. Verify from Laptop 1 with curl.exe http://192.168.1.25:8083/api/v1/cloud/health and probe endpoint. Do not use Windows PowerShell's curl alias when testing detailed HTTP semantics; curl.exe is unambiguous.
+
+Laptop 1, separate terminals:
+  .\mvnw.cmd -pl edge-agent spring-boot:run
+  .\mvnw.cmd -pl decision-service spring-boot:run
+  .\mvnw.cmd -pl route-estimator spring-boot:run
+  $env:EDGE_BASE_URL = "http://127.0.0.1:8081"
+  $env:DECISION_BASE_URL = "http://127.0.0.1:8082"
+  $env:ESTIMATOR_BASE_URL = "http://127.0.0.1:8084"
+  $env:CLOUD_BASE_URL = "http://192.168.1.25:8083"
+  .\mvnw.cmd -pl dashboard-orchestrator spring-boot:run
+Environment variables must be set in the SAME terminal that starts the dashboard. Start the dashboard last. Open http://127.0.0.1:8080. Check four service health endpoints and actual Cloud connectivity.
+
+Show live measurements and a normal request; then all five Demo Mode presets, all route scores/rejections, a true Hybrid flow, and Cloud failure with logged Edge fallback. Run the paired evaluation workload. Export anonymized CSV, capture model/calibration/profile versions, and disclose which values were simulated or estimated.
+
+20. RESEARCH INTERPRETATION AND FUTURE WORK
+===========================================
+The contribution is a practical, lightweight, explainable evaluation of cloud necessity with hard constraints before multi-objective scoring; three genuine execution routes; switching hysteresis; estimated environmental costs; and a reproducible two-laptop demonstration. The field already studies latency, privacy, energy and carbon; do not claim first discovery of those factors.
+
+Measured: CPU/RAM, supported battery percentage, probe RTT, probe-based bandwidth estimate, actual request/response time, decision time, network bytes. Estimated: energy, carbon, expected latency and resource burden. User-defined: privacy, deadline, profile. Simulated: Demo Mode conditions. Keep those categories visually and analytically distinct.
+
+Possible later work: use AHP for weights, better power measurement, regional/real-time carbon intensity, calibrated probabilistic latency, learned placement from a sufficiently large evaluation dataset, RL when justified, more models/nodes, advanced Hybrid partitioning, HTTPS/authentication, and actual edge hardware. Do not turn these into v1 requirements.
+
+21. CONFIGURATION AND PRE-BRANCH FREEZE CHECKLIST
+=================================================
+.env.example (documentation only; application.yml may use environment substitutions):
+  EDGE_PORT=8081
+  DECISION_PORT=8082
+  CLOUD_PORT=8083
+  ESTIMATOR_PORT=8084
+  ORCHESTRATOR_PORT=8080
+  EDGE_BASE_URL=http://127.0.0.1:8081
+  DECISION_BASE_URL=http://127.0.0.1:8082
+  ESTIMATOR_BASE_URL=http://127.0.0.1:8084
+  CLOUD_BASE_URL=http://192.168.1.25:8083
+  DEMO_MODE=false
+  DECISION_DB_PATH=./data/decisions
+  SWITCH_THRESHOLD=0.10
+  TRANSMISSION_ENERGY_J_PER_MB=0.50
+  CARBON_INTENSITY_G_PER_KWH=500
+  CALIBRATION_VERSION=demo-v1
+These numeric values are placeholders for a prototype, not scientific constants. Never commit a real .env, database file, target/, native library cache or credentials.
+
+All four agree and freeze: JDK/Spring Boot/Maven and dependency versions; module structure and ports; OpenAPI paths; JSON fields/enums/units/nullability; task complexity thresholds; model and label map; feature order/normalization; golden examples and probability tolerances; privacy and deadline semantics; cost coefficients and calibration; normalization caps and weight profiles; switching threshold/tie policy; fallback/status codes; Demo Mode representation; logging schema; model/checksum distribution; probe size/timeouts; Windows firewall and build procedure.
+
+The document is a complete architecture proposal. The most important unresolved pre-implementation item is the actual frozen AI model and its validated fixtures, because inference contracts and true Hybrid equivalence depend on them. Resolve this with the four developers before they branch.
+
+22. REFERENCE LINKS
+===================
+Project basis: user-provided "Pasted markdown(1).md", Adaptive Edge–Cloud AI complete project specification (2357 lines), including sections on constraints, estimates, Hybrid, Demo Mode, logging and evaluation.
+Spring Boot versions/Java compatibility: https://docs.spring.io/spring-boot/system-requirements.html
+Spring Boot project: https://spring.io/projects/spring-boot
+ONNX Runtime Java binding: https://onnxruntime.ai/docs/get-started/with-java.html
+OSHI project: https://www.oshi.ooo/
+Flyway H2 support: https://documentation.red-gate.com/flyway/reference/database-driver-reference/h2
+WireMock Spring Boot integration: https://wiremock.org/docs/spring-boot/
+
+END OF ARCHITECTURE
