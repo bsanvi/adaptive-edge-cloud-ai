@@ -1,6 +1,9 @@
 
 package com.team.aecai.orchestrator.client;
 
+import com.team.aecai.orchestrator.dto.HybridPreprocessResponse;
+import com.team.aecai.orchestrator.dto.HybridInferenceResult;
+
 import com.team.aecai.orchestrator.dto.DeviceMetrics;
 import com.team.aecai.orchestrator.dto.TaskRequest;
 import com.team.aecai.orchestrator.dto.TaskProfile;
@@ -56,4 +59,29 @@ public class EdgeApiClient {
                 .retrieve()
                 .body(InferenceResponse.class);
     }
+    
+    // Ask Edge to preprocess features for Hybrid execution
+    public HybridPreprocessResponse hybridPreprocess(
+            InferenceRequest request) {
+
+        return restClient.post()
+                .uri("/api/v1/edge/hybrid/preprocess")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(HybridPreprocessResponse.class);
+    }
+
+    // Ask Edge to convert Cloud output into final prediction
+    public InferenceResponse hybridPostprocess(
+            HybridInferenceResult result) {
+
+        return restClient.post()
+                .uri("/api/v1/edge/hybrid/postprocess")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(result)
+                .retrieve()
+                .body(InferenceResponse.class);
+    }
+
 }
