@@ -1,0 +1,17 @@
+# Virtual environments
+.venv/
+.venv-1/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Pytest cache
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Generated image outputs
+sample_data/resized*.jpg
+sample_data/resized*.png

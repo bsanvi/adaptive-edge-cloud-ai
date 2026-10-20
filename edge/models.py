@@ -3,9 +3,12 @@ from pydantic import BaseModel
 
 class EdgeTaskRequest(BaseModel):
     """
-    Data that the Orchestrator sends when it wants
-    the Edge device to execute a task.
+    Request sent by the Orchestrator when it wants
+    the Edge device to resize an image locally.
     """
 
     task_id: str
-    number_count: int
+    input_path: str
+    output_path: str
+    width: int
+    height: int

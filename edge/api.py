@@ -34,10 +34,13 @@ def edge_metrics():
 @app.post("/edge/execute")
 def execute_edge_task(request: EdgeTaskRequest):
     """
-    Execute a task locally on the Edge device.
+    Execute an image-resize task locally on the Edge device.
     """
 
     return run_edge_task(
         task_id=request.task_id,
-        number_count=request.number_count
+        input_path=request.input_path,
+        output_path=request.output_path,
+        width=request.width,
+        height=request.height
     )
