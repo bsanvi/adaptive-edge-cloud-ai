@@ -51,7 +51,7 @@ public class CloudApiClient {
     
     public HybridInferenceResult hybridInfer(
             HybridCloudRequest request) {
-            
+
         return restClient.post()
                 .uri("/api/v1/cloud/hybrid/infer")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -59,5 +59,35 @@ public class CloudApiClient {
                 .retrieve()
                 .body(HybridInferenceResult.class);
     }
+    
+public byte[] probe(int sizeKb) {
+
+    if (sizeKb <= 0 || sizeKb > 1024) {
+        throw new IllegalArgumentException(
+                "Probe size must be between 1 and 1024 KiB"
+        );
+    }
+
+    byte[] response = restClient.get()
+            .uri(uriBuilder -> uriBuilder
+                    .path("/api/v1/cloud/probe")
+                    .queryParam("sizeKb", sizeKb)
+                    .build())
+            .retrieve()
+            .body(byte[].class);
+
+    int expectedBytes = sizeKb * 1024;
+
+    if (response == null ||
+            response.length != expectedBytes) {
+
+        throw new IllegalStateException(
+                "Cloud probe returned an invalid payload"
+        );
+    }
+
+    return response;
+}
+
 
 }

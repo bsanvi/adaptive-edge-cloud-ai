@@ -13,3 +13,6 @@ services:
     base-url: ${DECISION_BASE_URL:http://localhost:8082}
   cloud:
     base-url: ${CLOUD_BASE_URL:http://localhost:8083}
+
+monitor:
+  probe-size-kb: 256
