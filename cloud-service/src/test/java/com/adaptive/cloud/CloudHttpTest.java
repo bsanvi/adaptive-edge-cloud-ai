@@ -6,6 +6,8 @@ import org.springframework.boot.web.server.context.WebServerApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import java.net.URI;
 import java.net.http.*;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CloudHttpTest {
@@ -43,5 +45,22 @@ class CloudHttpTest {
         String body="{\"requestId\":\"r1\",\"taskId\":\"t1\",\"privacyLevel\":\"NORMAL\",\"extra\":true,\"samples\":[0,0,0,0,0,0,0,0]}";
         assertEquals(400,post("/predict",body).statusCode());
         assertEquals(400,post("/predict",body.replace("\"extra\":true,","").replace("0,0,0,0,0,0,0,0","\"0\",0,0,0,0,0,0,0")).statusCode());
+    }
+    @Test void chunkedBodiesRespectTheExactByteLimit()throws Exception{
+        String body="{\"requestId\":\"r1\",\"taskId\":\"t1\",\"privacyLevel\":\"NORMAL\",\"samples\":[0,0,0,0,0,0,0,0]}";
+        for(int size:new int[]{1048576,1048577}){
+            byte[] bytes=(body+" ".repeat(size-body.length())).getBytes(StandardCharsets.UTF_8);
+            var request=HttpRequest.newBuilder(URI.create(base+"/predict")).header("Content-Type","application/json")
+                .POST(HttpRequest.BodyPublishers.ofInputStream(()->new ByteArrayInputStream(bytes))).build();
+            var response=client.send(request,HttpResponse.BodyHandlers.ofString());
+            assertEquals(size==1048576?200:413,response.statusCode());
+            if(size>1048576) assertTrue(response.body().contains("PAYLOAD_TOO_LARGE"));
+        }
+    }
+    @Test void numericPrivacyAndTrailingJsonAreRejected()throws Exception{
+        String body="{\"requestId\":\"r1\",\"taskId\":\"t1\",\"privacyLevel\":\"NORMAL\",\"samples\":[0,0,0,0,0,0,0,0]}";
+        assertAll(
+            ()->assertEquals(400,post("/predict",body.replace("\"NORMAL\"","0")).statusCode(),"numeric privacy"),
+            ()->assertEquals(400,post("/predict",body+" {}").statusCode(),"trailing JSON"));
     }
 }

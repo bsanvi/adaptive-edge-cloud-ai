@@ -6,6 +6,8 @@ import org.springframework.boot.web.server.context.WebServerApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import java.net.URI;
 import java.net.http.*;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.*;
 
 class EstimateHttpTest {
@@ -30,5 +32,28 @@ class EstimateHttpTest {
         assertEquals(400,post(offline().replace("\"cpuPercent\":20","\"cpuPercent\":101")).statusCode());
         assertEquals(400,post(offline().replace("\"LOW\"","\"INVALID\"")).statusCode());
         assertEquals(400,post(offline().replace("\"edgeCapable\":true,","")).statusCode());
+    }
+    @Test void fractionalByteCountsAreRejected()throws Exception{
+        for(String field:new String[]{"dataSizeBytes","estimatedFeatureBytes","estimatedResultBytes"}){
+            String body=offline().replaceAll("\""+field+"\":\\d+","\""+field+"\":1.5");
+            assertEquals(400,post(body).statusCode(),field);
+        }
+    }
+    @Test void numericEnumsAndTrailingJsonAreRejected()throws Exception{
+        assertAll(
+            ()->assertEquals(400,post(offline().replace("\"LOW\"","0")).statusCode(),"numeric complexity"),
+            ()->assertEquals(400,post(offline().replace("\"MEASURED\"","0")).statusCode(),"numeric metric source"),
+            ()->assertEquals(400,post(offline()+" {}").statusCode(),"trailing JSON"));
+    }
+    @Test void chunkedBodiesRespectTheExactByteLimit()throws Exception{
+        String body=offline();
+        for(int size:new int[]{1048576,1048577}){
+            byte[] bytes=(body+" ".repeat(size-body.length())).getBytes(StandardCharsets.UTF_8);
+            var request=HttpRequest.newBuilder(URI.create(base+"/routes")).header("Content-Type","application/json")
+                .POST(HttpRequest.BodyPublishers.ofInputStream(()->new ByteArrayInputStream(bytes))).build();
+            var response=client.send(request,HttpResponse.BodyHandlers.ofString());
+            assertEquals(size==1048576?200:413,response.statusCode());
+            if(size>1048576) assertTrue(response.body().contains("PAYLOAD_TOO_LARGE"));
+        }
     }
 }
