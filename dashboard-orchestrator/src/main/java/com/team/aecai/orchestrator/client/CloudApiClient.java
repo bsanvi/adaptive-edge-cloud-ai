@@ -1,6 +1,9 @@
 
 package com.team.aecai.orchestrator.client;
 
+import com.team.aecai.orchestrator.dto.HybridCloudRequest;
+import com.team.aecai.orchestrator.dto.HybridInferenceResult;
+
 import com.team.aecai.orchestrator.dto.CloudHealthResponse;
 import com.team.aecai.orchestrator.dto.InferenceRequest;
 import com.team.aecai.orchestrator.dto.InferenceResponse;
@@ -45,4 +48,16 @@ public class CloudApiClient {
                 .retrieve()
                 .body(InferenceResponse.class);
     }
+    
+    public HybridInferenceResult hybridInfer(
+            HybridCloudRequest request) {
+            
+        return restClient.post()
+                .uri("/api/v1/cloud/hybrid/infer")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(HybridInferenceResult.class);
+    }
+
 }
