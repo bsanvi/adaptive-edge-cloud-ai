@@ -1,6 +1,7 @@
 
 package com.team.aecai.orchestrator.orchestration;
 
+import org.mockito.InOrder;
 import com.team.aecai.orchestrator.client.*;
 import com.team.aecai.orchestrator.dto.*;
 import com.team.aecai.orchestrator.network.NetworkMonitor;
@@ -220,4 +221,59 @@ class AdaptiveOrchestratorTest {
         verify(edge, never()).predict(any());
         verify(cloud, never()).predict(any());
     }
+    
+@Test
+void shouldExecuteHybridStepsInCorrectOrder() {
+
+    when(decisionClient.evaluate(any()))
+            .thenReturn(decision("HYBRID", true));
+
+    HybridPreprocessResponse prepared =
+            new HybridPreprocessResponse(
+                    "TASK-001",
+                    List.of(-0.90, 1.02, -1.34, -1.28),
+                    1.8
+            );
+
+    HybridInferenceResult cloudResult =
+            new HybridInferenceResult(
+                    "TASK-001",
+                    0,
+                    0.94,
+                    10.1
+            );
+
+    when(edge.hybridPreprocess(any()))
+            .thenReturn(prepared);
+
+    when(cloud.hybridInfer(any()))
+            .thenReturn(cloudResult);
+
+    when(edge.hybridPostprocess(any()))
+            .thenReturn(prediction());
+
+    OrchestrationResult result =
+            orchestrator.execute(task, "EDGE");
+
+    assertEquals("SUCCESS", result.status());
+    assertEquals("HYBRID", result.selectedRoute());
+    assertEquals("HYBRID", result.actualRoute());
+    assertFalse(result.fallbackUsed());
+    assertEquals(
+            "SETOSA",
+            result.prediction().prediction()
+    );
+
+    InOrder executionOrder = inOrder(edge, cloud);
+
+    executionOrder.verify(edge)
+            .hybridPreprocess(any());
+
+    executionOrder.verify(cloud)
+            .hybridInfer(any());
+
+    executionOrder.verify(edge)
+            .hybridPostprocess(any());
+}
+
 }
