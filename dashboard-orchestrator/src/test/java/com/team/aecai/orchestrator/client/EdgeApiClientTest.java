@@ -24,7 +24,11 @@ class EdgeApiClientTest {
         MockRestServiceServer server =
             MockRestServiceServer.bindTo(builder).build();
 
-        EdgeApiClient client = new EdgeApiClient(builder);
+        EdgeApiClient client = new EdgeApiClient(
+        builder,
+        "http://localhost:8081"
+        );
+        
 
         String json = """
             {

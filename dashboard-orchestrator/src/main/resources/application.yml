@@ -1,7 +1,15 @@
+
 server:
   port: 8080
 
 spring:
   application:
     name: dashboard-orchestrator
-    
+
+services:
+  edge:
+    base-url: ${EDGE_BASE_URL:http://localhost:8081}
+  decision:
+    base-url: ${DECISION_BASE_URL:http://localhost:8082}
+  cloud:
+    base-url: ${CLOUD_BASE_URL:http://localhost:8083}
