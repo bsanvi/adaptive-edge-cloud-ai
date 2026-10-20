@@ -1,26 +1,67 @@
-# Intelligent Edge Cloud
+# Adaptive Edge-Cloud AI
 
-This project is a starter scaffold for an edge monitoring and automation system.
+An adaptive workload orchestration system that evaluates runtime conditions and selects an appropriate execution environment for processing tasks at the edge or in the cloud.
 
-## Structure
+## Project Structure
 
-- `edge/`: core package for monitoring, execution, models, services, and API entry points
-- `tests/`: unit tests for the monitor and executor
-- `sample_data/`: place for example telemetry or fixture datasets
-- `requirements.txt`: project dependencies
+- `edge/`: Core package for monitoring, execution, decision-making models, services, and API endpoints.
+- `tests/`: Unit tests for the monitoring, execution, service, and API modules.
+- `requirements.txt`: Python project dependencies.
 
-## Quick start
+## Features
+
+- **Edge monitoring:** Collects system telemetry and identifies threshold-based alerts.
+- **Workload execution:** Provides the foundation for executing processing tasks.
+- **Workflow orchestration:** Coordinates monitoring, decision-making, and execution.
+- **API integration:** Exposes a minimal FastAPI application for interacting with the system.
+- **Testing:** Includes unit tests to verify core functionality.
+
+## Technology Stack
+
+- Python
+- FastAPI
+- Pytest
+
+Additional edge devices, cloud services, and adaptive decision-making components can be integrated as the project develops.
+
+## Quick Start
+
+### 1. Clone the repository
 
 ```bash
-python -m venv .venv
+git clone https://github.com/bsanvi/adaptive-edge-cloud-ai.git
+cd adaptive-edge-cloud-ai
+```
+
+### 2. Create a virtual environment
+
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
+
+### 4. Run the tests
+
+```bash
 pytest
 ```
 
-## Modules
+## Core Modules
 
-- `edge.monitor`: collects telemetry and identifies threshold alerts
-- `edge.executor`: performs remediation actions
-- `edge.service`: orchestrates the edge workflow
-- `edge.api`: exposes a minimal FastAPI application
+- `edge.monitor`: Collects telemetry and identifies threshold alerts.
+- `edge.executor`: Handles task execution and remediation actions.
+- `edge.models`: Defines the models used by the system.
+- `edge.service`: Orchestrates the edge workflow.
+- `edge.api`: Exposes the FastAPI application.
+
+## Project Goal
+
+The goal is to develop and experimentally evaluate an adaptive orchestration mechanism that considers runtime conditions and task requirements when deciding whether workloads should execute locally at the edge or remotely in the cloud.
+
+*This project is under development.*
