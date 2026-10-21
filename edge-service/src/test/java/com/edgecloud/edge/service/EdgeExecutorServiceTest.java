@@ -20,7 +20,6 @@ class EdgeExecutorServiceTest {
     @Test
     void shouldResizeImageSuccessfully() throws Exception {
 
-        // Create a temporary 1200 x 800 image
         File inputFile = tempDir.resolve("input.jpg").toFile();
 
         BufferedImage image =
@@ -47,20 +46,76 @@ class EdgeExecutorServiceTest {
                 );
 
         assertEquals("image_resize", result.task_type());
-
         assertEquals(1200, result.input_width());
         assertEquals(800, result.input_height());
-
         assertEquals(640, result.output_width());
         assertEquals(480, result.output_height());
 
         assertTrue(result.input_size_bytes() > 0);
         assertTrue(result.output_size_bytes() > 0);
-
         assertTrue(result.execution_time_ms() >= 0);
 
         assertEquals("success", result.status());
-
         assertTrue(outputFile.exists());
+    }
+
+    @Test
+    void shouldRejectInvalidDimensions() throws Exception {
+
+        File inputFile = tempDir.resolve("input.jpg").toFile();
+
+        BufferedImage image =
+                new BufferedImage(
+                        1200,
+                        800,
+                        BufferedImage.TYPE_INT_RGB
+                );
+
+        ImageIO.write(image, "jpg", inputFile);
+
+        EdgeExecutorService executor =
+                new EdgeExecutorService();
+
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> executor.resizeImage(
+                                inputFile.getAbsolutePath(),
+                                tempDir.resolve("output.jpg").toString(),
+                                0,
+                                480
+                        )
+                );
+
+        assertEquals(
+                "Width and height must be greater than 0",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void shouldRejectMissingInputFile() {
+
+        EdgeExecutorService executor =
+                new EdgeExecutorService();
+
+        String missingPath =
+                tempDir.resolve("does-not-exist.jpg").toString();
+
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> executor.resizeImage(
+                                missingPath,
+                                tempDir.resolve("output.jpg").toString(),
+                                640,
+                                480
+                        )
+                );
+
+        assertTrue(
+                exception.getMessage()
+                        .contains("Input file does not exist")
+        );
     }
 }
