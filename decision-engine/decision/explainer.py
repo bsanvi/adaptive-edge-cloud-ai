@@ -70,11 +70,15 @@ def explain_decision(result: dict) -> str:
             )
 
     # Explain why other locations were rejected
+    
     for location, reasons in rejected.items():
+        prefix = f"{location.capitalize()} rejected:"
+
         for reason in reasons:
-            message += (
-                f"{location.capitalize()} rejected: "
-                f"{reason} "
-            )
+            if reason.lower().startswith(prefix.lower()):
+                message += f"{reason} "
+            else:
+                message += f"{prefix} {reason} "
+
 
     return message.strip()

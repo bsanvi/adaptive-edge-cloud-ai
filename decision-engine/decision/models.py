@@ -1,6 +1,7 @@
 
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
+from typing import Literal
 
 
 class ValidatedModel(BaseModel):
@@ -55,3 +56,44 @@ class DecisionRequest(ValidatedModel):
     network: NetworkMetrics
     estimates: ExecutionEstimates
     previous_location: Location | None = None
+
+    
+from typing import Literal
+
+
+class ScoreDetails(ValidatedModel):
+    score: float
+    components: dict[str, float]
+    weighted_contributions: dict[str, float]
+    base_score: float
+    device_readiness: float | None
+    adjusted_score: float
+
+
+class RejectionDetail(ValidatedModel):
+    code: str
+    message: str
+
+
+class RuleResult(ValidatedModel):
+    allowed_locations: list[str]
+    rejected_locations: dict[str, str]
+    rejection_codes: dict[str, list[str]]
+
+
+class DecisionResponse(ValidatedModel):
+    task_id: str
+    status: Literal["selected", "no_feasible_route"]
+    selected_location: Literal["edge", "cloud", "hybrid"] | None
+
+    scores: dict[str, ScoreDetails]
+    rejected_locations: dict[str, list[str]]
+    rejection_details: dict[str, list[RejectionDetail]]
+
+    rule_results: dict[str, RuleResult]
+
+    switch_applied: bool
+    switch_reason: str
+    reason_code: str
+    explanation: str
+
