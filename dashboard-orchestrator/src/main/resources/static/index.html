@@ -1,0 +1,506 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Adaptive Edge-Cloud AI Dashboard</title>
+
+    <style>
+        :root {
+            font-family: Arial, sans-serif;
+            color: #e8edf7;
+            background: #0b1220;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        header {
+            padding: 26px 5%;
+            background: #141e30;
+            border-bottom: 1px solid #334155;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+
+        header p {
+            margin: 0;
+            color: #9caac0;
+        }
+
+        main {
+            width: 90%;
+            max-width: 1150px;
+            margin: 28px auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+
+        .card {
+            background: #172236;
+            padding: 24px;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            margin-bottom: 22px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 7px;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            border-radius: 7px;
+            border: 1px solid #475569;
+            background: #101827;
+            color: white;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        button {
+            margin-top: 18px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            background: #2563eb;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .secondary {
+            background: #475569;
+        }
+
+        .notice {
+            color: #fbbf24;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .muted {
+            color: #94a3b8;
+        }
+
+        .value {
+            color: #67e8f9;
+            font-weight: bold;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #334155;
+            padding: 12px 0;
+            gap: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            color: #94a3b8;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        #feedback {
+            white-space: pre-wrap;
+            color: #fbbf24;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 750px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Adaptive Edge-Cloud AI</h1>
+    <p>Intelligent Task Orchestration Dashboard</p>
+</header>
+
+<main>
+
+    <div class="grid">
+
+        <section class="card">
+            <h2>Submit AI Task</h2>
+
+            <form id="taskForm">
+
+                <label for="taskId">Task ID</label>
+                <input id="taskId" value="TASK-001" required>
+
+                <label for="features">
+                    Iris Features (4 comma-separated numbers)
+                </label>
+                <input id="features"
+                       value="5.1, 3.5, 1.4, 0.2"
+                       required>
+
+                <label for="deadline">Deadline (ms)</label>
+                <input id="deadline"
+                       type="number"
+                       min="1"
+                       value="500"
+                       required>
+
+                <label for="privacy">Privacy</label>
+                <select id="privacy">
+                    <option value="NORMAL">NORMAL</option>
+                    <option value="HIGH">HIGH</option>
+                </select>
+
+                <label for="priority">Priority</label>
+                <select id="priority">
+                    <option value="BALANCED">BALANCED</option>
+                    <option value="REAL_TIME">REAL_TIME</option>
+                    <option value="ENERGY_SAVING">ENERGY_SAVING</option>
+                </select>
+
+                <label for="complexity">Complexity</label>
+                <select id="complexity">
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM" selected>MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                </select>
+
+                <label>
+                    <input id="demoMode"
+                           type="checkbox" checked>
+                    Demo Mode
+                </label>
+
+                <label for="demoRoute">Demo execution route</label>
+                <select id="demoRoute">
+                    <option value="EDGE">EDGE</option>
+                    <option value="CLOUD">CLOUD</option>
+                    <option value="HYBRID">HYBRID</option>
+                </select>
+
+                <p class="notice">
+                    Demo Mode generates synthetic results.
+                    Disable it to execute through the
+                    actual Edge, Decision and Cloud services.
+                </p>
+
+                <button id="submitButton" type="submit">
+                    Execute Task
+                </button>
+
+                <div id="feedback" role="status"></div>
+
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Execution Result</h2>
+
+            <p id="resultPlaceholder" class="muted">
+                Submit a task to see its result.
+            </p>
+
+            <div id="resultDetails" hidden>
+                <div class="result-row">
+                    <span>Status</span>
+                    <span class="value" id="resultStatus"></span>
+                </div>
+
+                <div class="result-row">
+                    <span>Selected Route</span>
+                    <span class="value" id="selectedRoute"></span>
+                </div>
+
+                <div class="result-row">
+                    <span>Actual Route</span>
+                    <span class="value" id="actualRoute"></span>
+                </div>
+
+                <div class="result-row">
+                    <span>Prediction</span>
+                    <span class="value" id="prediction"></span>
+                </div>
+
+                <div class="result-row">
+                    <span>Confidence</span>
+                    <span class="value" id="confidence"></span>
+                </div>
+
+                <div class="result-row">
+                    <span>Total Time</span>
+                    <span class="value" id="totalTime"></span>
+                </div>
+
+                <div class="result-row">
+                    <span>Fallback Used</span>
+                    <span class="value" id="fallback"></span>
+                </div>
+
+                <p id="resultMessage" class="muted"></p>
+            </div>
+        </section>
+
+    </div>
+
+    <section class="card">
+        <h2>Execution History</h2>
+
+        <p class="muted">
+            Real execution records stored in H2.
+            Simulated demo tasks are not saved here.
+        </p>
+
+        <button class="secondary"
+                type="button"
+                id="refreshButton">
+            Refresh History
+        </button>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Task ID</th>
+                        <th>Status</th>
+                        <th>Selected</th>
+                        <th>Actual</th>
+                        <th>Prediction</th>
+                        <th>Time (ms)</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+
+        <p id="historyStatus" class="muted"></p>
+    </section>
+
+</main>
+
+<script>
+    const $ = id => document.getElementById(id);
+
+    function showResult(result) {
+        $("resultPlaceholder").hidden = true;
+        $("resultDetails").hidden = false;
+
+        $("resultStatus").textContent =
+            result.status ?? "-";
+
+        $("selectedRoute").textContent =
+            result.selectedRoute ?? "-";
+
+        $("actualRoute").textContent =
+            result.actualRoute ?? "-";
+
+        $("prediction").textContent =
+            result.prediction?.prediction ?? "-";
+
+        $("confidence").textContent =
+            result.prediction?.confidence != null
+                ? (result.prediction.confidence * 100)
+                    .toFixed(1) + "%"
+                : "-";
+
+        $("totalTime").textContent =
+            Number.isFinite(result.totalTimeMs)
+                ? result.totalTimeMs.toFixed(2) + " ms"
+                : "-";
+
+        $("fallback").textContent =
+            result.fallbackUsed ? "Yes" : "No";
+
+        $("resultMessage").textContent =
+            result.message ?? "";
+    }
+
+    async function refreshHistory() {
+        $("historyStatus").textContent = "Loading...";
+
+        try {
+            const response = await fetch(
+                "/api/v1/tasks/history?limit=20"
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "History request failed: HTTP " + response.status
+                );
+            }
+
+            const entries = await response.json();
+
+            const tbody = $("historyBody");
+            tbody.replaceChildren();
+
+            for (const entry of entries) {
+                const row = document.createElement("tr");
+
+                const values = [
+                    entry.taskId,
+                    entry.status,
+                    entry.selectedRoute,
+                    entry.actualRoute,
+                    entry.prediction,
+                    entry.totalTimeMs?.toFixed(2)
+                ];
+
+                for (const value of values) {
+                    const cell = document.createElement("td");
+                    cell.textContent = value ?? "-";
+                    row.appendChild(cell);
+                }
+
+                tbody.appendChild(row);
+            }
+
+            $("historyStatus").textContent =
+                entries.length === 0
+                    ? "No real task executions recorded yet."
+                    : entries.length + " records loaded.";
+
+        } catch (error) {
+            $("historyStatus").textContent = error.message;
+        }
+    }
+
+    $("taskForm").addEventListener(
+        "submit",
+        async event => {
+            event.preventDefault();
+
+            const values = $("features").value
+                .split(",")
+                .map(value => Number(value.trim()));
+
+            if (values.length !== 4 ||
+                    values.some(v => !Number.isFinite(v))) {
+                $("feedback").textContent =
+                    "Enter exactly four valid numeric features.";
+                return;
+            }
+
+            const task = {
+                taskId: $("taskId").value.trim(),
+                features: values,
+                deadlineMs: Number($("deadline").value),
+                privacyLevel: $("privacy").value,
+                priorityProfile: $("priority").value,
+                requestedComplexity: $("complexity").value
+            };
+
+            const demo = $("demoMode").checked;
+
+            const endpoint = demo
+                ? "/api/v1/demo/execute?route=" +
+                    encodeURIComponent($("demoRoute").value)
+                : "/api/v1/tasks/execute";
+
+            $("submitButton").disabled = true;
+            $("feedback").textContent =
+                demo
+                    ? "Generating simulated result..."
+                    : "Executing real task...";
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(task)
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Execution failed: HTTP " + response.status
+                    );
+                }
+
+                const result = await response.json();
+                showResult(result);
+
+                $("feedback").textContent = demo
+                    ? "SIMULATION ONLY — no model executed."
+                    : "Real execution request completed.";
+
+                if (!demo) {
+                    await refreshHistory();
+                }
+
+            } catch (error) {
+                $("feedback").textContent = error.message;
+
+            } finally {
+                $("submitButton").disabled = false;
+            }
+        }
+    );
+
+    $("refreshButton").addEventListener(
+        "click", refreshHistory
+    );
+
+    $("demoMode").addEventListener(
+        "change",
+        () => {
+            $("demoRoute").disabled =
+                !$("demoMode").checked;
+        }
+    );
+
+    refreshHistory();
+</script>
+
+</body>
+</html>

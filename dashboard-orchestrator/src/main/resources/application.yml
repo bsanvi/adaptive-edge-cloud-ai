@@ -1,0 +1,29 @@
+
+server:
+  port: 8080
+
+spring:
+  
+  datasource:
+    url: jdbc:h2:file:./aecai-history;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  sql:
+    init:
+      mode: always
+
+  application:
+    name: dashboard-orchestrator
+
+services:
+  edge:
+    base-url: ${EDGE_BASE_URL:http://localhost:8081}
+  decision:
+    base-url: ${DECISION_BASE_URL:http://localhost:8082}
+  cloud:
+    base-url: ${CLOUD_BASE_URL:http://localhost:8083}
+
+monitor:
+  probe-size-kb: 256
