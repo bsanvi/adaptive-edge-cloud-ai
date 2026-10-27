@@ -1,3 +1,4 @@
+
 package com.adaptive.decision.scoring;
 
 import java.util.Map;
@@ -20,6 +21,18 @@ public final class WeightedScorer {
         Map<String, Double> contributions
     ) {}
 
+    // Normalization bounds from Python config.json
+    private static final double MAX_TIME_MS = 5000.0;
+    private static final double MAX_ENERGY_J = 100.0;
+    private static final double MAX_COST = 1.0;
+    private static final double MAX_CARBON_G = 0.1;
+
+    // Weights from Python config.json
+    private static final double TIME_WEIGHT = 0.50;
+    private static final double ENERGY_WEIGHT = 0.20;
+    private static final double COST_WEIGHT = 0.20;
+    private static final double CARBON_WEIGHT = 0.10;
+
     public static ScoreResult score(Metrics metrics) {
 
         if (metrics == null) {
@@ -29,25 +42,25 @@ public final class WeightedScorer {
         }
 
         double time = Normalizer.lowerIsBetter(
-            metrics.timeMs(), 0.0, 10000.0
+            metrics.timeMs(), 0.0, MAX_TIME_MS
         );
 
         double energy = Normalizer.lowerIsBetter(
-            metrics.energyJ(), 0.0, 1000.0
+            metrics.energyJ(), 0.0, MAX_ENERGY_J
         );
 
         double cost = Normalizer.lowerIsBetter(
-            metrics.monetaryCost(), 0.0, 1.0
+            metrics.monetaryCost(), 0.0, MAX_COST
         );
 
         double carbon = Normalizer.lowerIsBetter(
-            metrics.carbonG(), 0.0, 100.0
+            metrics.carbonG(), 0.0, MAX_CARBON_G
         );
 
-        double timeContribution = time * 0.50;
-        double energyContribution = energy * 0.20;
-        double costContribution = cost * 0.20;
-        double carbonContribution = carbon * 0.10;
+        double timeContribution = time * TIME_WEIGHT;
+        double energyContribution = energy * ENERGY_WEIGHT;
+        double costContribution = cost * COST_WEIGHT;
+        double carbonContribution = carbon * CARBON_WEIGHT;
 
         double total =
             timeContribution +
