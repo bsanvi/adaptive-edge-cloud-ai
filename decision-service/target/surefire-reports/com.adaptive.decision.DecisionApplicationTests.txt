@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.adaptive.decision.DecisionApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.993 s -- in com.adaptive.decision.DecisionApplicationTests
