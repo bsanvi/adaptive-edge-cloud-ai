@@ -6,6 +6,8 @@ import com.adaptive.decision.dto.EstimatorInputs;
 import com.adaptive.decision.dto.EstimatorResponse;
 import com.adaptive.decision.dto.RouteCostInputs;
 
+import com.adaptive.decision.scoring.DeviceReadinessScorer;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,10 +17,10 @@ public class DecisionPipeline {
 
     public DecisionPipeline(
             EstimationGateway estimationGateway) {
+
         this.estimationGateway = estimationGateway;
     }
 
-    // Keep the original method for existing callers.
     public RoutingResult evaluate(
             DecisionRequest request,
             EstimatorInputs estimatorInputs,
@@ -31,7 +33,6 @@ public class DecisionPipeline {
         ).routing();
     }
 
-    // New method: preserve the estimator response too.
     public DecisionPipelineResult evaluateDetailed(
             DecisionRequest request,
             EstimatorInputs estimatorInputs,
@@ -47,14 +48,20 @@ public class DecisionPipeline {
             );
         }
 
-        // 1. Obtain estimates from Person 3.
+        if (request.device() == null) {
+            throw new IllegalArgumentException(
+                "Device metrics are required"
+            );
+        }
+
+        // Step 1: Obtain estimates from Person 3.
         EstimatorResponse estimates =
             estimationGateway.estimate(
                 request,
                 estimatorInputs
             );
 
-        // 2. Check feasibility and build scoring inputs.
+        // Step 2: Apply feasibility rules.
         var routeInputs =
             RouteEvaluationBuilder.build(
                 request,
@@ -62,14 +69,29 @@ public class DecisionPipeline {
                 costInputs
             );
 
-        // 3. Score, select and apply hysteresis.
+        // Step 3: Calculate local device readiness.
+        //
+        // Person 4 does not supply powerPlugged.
+        // Therefore battery is excluded until
+        // its charging status can be verified.
+
+        double readiness =
+            DeviceReadinessScorer.calculateReadiness(
+                request.device().cpuPercent(),
+                request.device().ramPercent(),
+                null,
+                null
+            );
+
+        // Step 4: Score routes and apply hysteresis.
         RoutingResult routing =
             RoutingEngine.evaluate(
                 routeInputs,
-                request.currentRoute()
+                request.currentRoute(),
+                readiness
             );
 
-        // 4. Preserve both results.
+        // Step 5: Return routing and estimator data.
         return new DecisionPipelineResult(
             routing,
             estimates

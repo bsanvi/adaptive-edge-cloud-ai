@@ -4,6 +4,7 @@ package com.adaptive.decision.service;
 import com.adaptive.decision.selection.RouteSelector;
 import com.adaptive.decision.selection.SwitchingPolicy;
 import com.adaptive.decision.scoring.WeightedScorer;
+import com.adaptive.decision.scoring.DeviceReadinessScorer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +21,23 @@ public final class RoutingEngine {
         List<String> rejectionReasons
     ) {}
 
+    // Original method retained for existing callers.
     public static RoutingResult evaluate(
             List<RouteInput> inputs,
             String previousRoute) {
+
+        return evaluate(
+            inputs,
+            previousRoute,
+            null
+        );
+    }
+
+    // New method includes device readiness.
+    public static RoutingResult evaluate(
+            List<RouteInput> inputs,
+            String previousRoute,
+            Double deviceReadiness) {
 
         if (inputs == null) {
             throw new IllegalArgumentException(
@@ -40,6 +55,7 @@ public final class RoutingEngine {
 
             if (input == null
                     || input.rejectionReasons() == null) {
+
                 throw new IllegalArgumentException(
                     "Invalid route input"
                 );
@@ -48,9 +64,35 @@ public final class RoutingEngine {
             double score = 0.0;
 
             if (input.feasible()) {
-                score = WeightedScorer.score(
-                    input.metrics()
-                ).score();
+
+                double baseScore =
+                    WeightedScorer.score(
+                        input.metrics()
+                    ).score();
+
+                if (deviceReadiness != null) {
+
+                    // Match Python's four-decimal
+                    // base-score rounding.
+                    baseScore =
+                        Math.round(baseScore * 10000.0)
+                        / 10000.0;
+
+                    // EDGE and HYBRID receive the
+                    // readiness adjustment.
+                    // CLOUD retains its base score.
+                    score = DeviceReadinessScorer
+                        .adjustScore(
+                            input.route(),
+                            baseScore,
+                            deviceReadiness
+                        )
+                        .adjustedScore();
+
+                } else {
+                    // Preserve old behavior.
+                    score = baseScore;
+                }
             }
 
             candidates.add(
@@ -66,7 +108,9 @@ public final class RoutingEngine {
                     input.route(),
                     input.feasible(),
                     score,
-                    List.copyOf(input.rejectionReasons())
+                    List.copyOf(
+                        input.rejectionReasons()
+                    )
                 )
             );
         }
