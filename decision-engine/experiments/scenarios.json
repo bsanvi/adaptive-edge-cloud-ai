@@ -1,0 +1,131 @@
+
+[
+  {
+    "name": "private_task",
+    "description": "Sensitive task must stay on Edge.",
+    "expected_location": "edge",
+    "request": {
+      "task": {
+        "task_id": "scenario_001",
+        "task_type": "computation",
+        "data_size_mb": 5.0,
+        "complexity": 0.5,
+        "deadline_ms": 2000.0,
+        "privacy_required": true
+      },
+      "edge": {
+        "cpu_percent": 30.0,
+        "ram_percent": 40.0,
+        "battery_percent": 80.0,
+        "power_plugged": false
+      },
+      "network": {
+        "latency_ms": 30.0,
+        "bandwidth_mbps": 50.0
+      },
+      "estimates": {
+        "edge": {
+          "estimated_time_ms": 700.0,
+          "estimated_energy_j": 10.0,
+          "estimated_cost": 0.0,
+          "estimated_carbon_g": 0.001
+        },
+        "cloud": {
+          "estimated_time_ms": 300.0,
+          "estimated_energy_j": 20.0,
+          "estimated_cost": 0.02,
+          "estimated_carbon_g": 0.003
+        },
+        "hybrid": null
+      },
+      "previous_location": null
+    }
+  },
+  {
+    "name": "slow_network",
+    "description": "High latency makes remote routes ineligible.",
+    "expected_location": "edge",
+    "request": {
+      "task": {
+        "task_id": "scenario_002",
+        "task_type": "computation",
+        "data_size_mb": 10.0,
+        "complexity": 0.6,
+        "deadline_ms": 2000.0,
+        "privacy_required": false
+      },
+      "edge": {
+        "cpu_percent": 40.0,
+        "ram_percent": 50.0,
+        "battery_percent": 70.0,
+        "power_plugged": false
+      },
+      "network": {
+        "latency_ms": 350.0,
+        "bandwidth_mbps": 2.0
+      },
+      "estimates": {
+        "edge": {
+          "estimated_time_ms": 1000.0,
+          "estimated_energy_j": 20.0,
+          "estimated_cost": 0.0,
+          "estimated_carbon_g": 0.003
+        },
+        "cloud": {
+          "estimated_time_ms": 500.0,
+          "estimated_energy_j": 15.0,
+          "estimated_cost": 0.03,
+          "estimated_carbon_g": 0.004
+        },
+        "hybrid": null
+      },
+      "previous_location": null
+    }
+  },
+  {
+    "name": "impossible_deadline",
+    "description": "No route can meet the deadline.",
+    "expected_location": null,
+    "request": {
+      "task": {
+        "task_id": "scenario_003",
+        "task_type": "computation",
+        "data_size_mb": 5.0,
+        "complexity": 0.7,
+        "deadline_ms": 100.0,
+        "privacy_required": false
+      },
+      "edge": {
+        "cpu_percent": 50.0,
+        "ram_percent": 60.0,
+        "battery_percent": null,
+        "power_plugged": null
+      },
+      "network": {
+        "latency_ms": 30.0,
+        "bandwidth_mbps": 50.0
+      },
+      "estimates": {
+        "edge": {
+          "estimated_time_ms": 900.0,
+          "estimated_energy_j": 25.0,
+          "estimated_cost": 0.0,
+          "estimated_carbon_g": 0.003
+        },
+        "cloud": {
+          "estimated_time_ms": 500.0,
+          "estimated_energy_j": 20.0,
+          "estimated_cost": 0.02,
+          "estimated_carbon_g": 0.004
+        },
+        "hybrid": {
+          "estimated_time_ms": 700.0,
+          "estimated_energy_j": 22.0,
+          "estimated_cost": 0.01,
+          "estimated_carbon_g": 0.0035
+        }
+      },
+      "previous_location": null
+    }
+  }
+]
