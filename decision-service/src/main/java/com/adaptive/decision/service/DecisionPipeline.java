@@ -15,10 +15,23 @@ public class DecisionPipeline {
 
     private final EstimationGateway estimationGateway;
 
+    private final com.adaptive.decision.scoring.ScoringConfiguration config;
+
+    public DecisionPipeline(EstimationGateway gateway) {
+        this(gateway, com.adaptive.decision.scoring.ScoringConfiguration.defaults());
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
     public DecisionPipeline(
-            EstimationGateway estimationGateway) {
+            EstimationGateway estimationGateway,
+            com.adaptive.decision.scoring.ScoringConfiguration config) {
 
         this.estimationGateway = estimationGateway;
+        this.config = config;
+    }
+
+    public void validateRequest(DecisionRequest request) {
+        DecisionRequestValidator.validate(request, config);
     }
 
     public RoutingResult evaluate(
@@ -48,11 +61,13 @@ public class DecisionPipeline {
             );
         }
 
-        if (request.device() == null) {
+        if (request.task() == null || request.network() == null || request.device() == null) {
             throw new IllegalArgumentException(
                 "Device metrics are required"
             );
         }
+
+        validateRequest(request);
 
         // Step 1: Obtain estimates from Person 3.
         EstimatorResponse estimates =
@@ -66,8 +81,22 @@ public class DecisionPipeline {
             RouteEvaluationBuilder.build(
                 request,
                 estimates,
-                costInputs
+                costInputs, config
             );
+
+        // Defend hard capability constraints even if an upstream response is inconsistent.
+        routeInputs = routeInputs.stream().map(input -> {
+            boolean capable = switch (input.route()) {
+                case "EDGE" -> estimatorInputs.edgeCapable();
+                case "CLOUD" -> estimatorInputs.cloudCapable();
+                case "HYBRID" -> estimatorInputs.edgeCapable() && estimatorInputs.cloudCapable();
+                default -> false;
+            };
+            if (capable) return input;
+            var reasons = new java.util.ArrayList<>(input.rejectionReasons());
+            reasons.add("EXECUTION_CAPABILITY_UNAVAILABLE");
+            return new RoutingEngine.RouteInput(input.route(), false, null, java.util.List.copyOf(reasons));
+        }).toList();
 
         // Step 3: Calculate local device readiness.
         //
@@ -88,13 +117,15 @@ public class DecisionPipeline {
             RoutingEngine.evaluate(
                 routeInputs,
                 request.currentRoute(),
-                readiness
+                readiness, config, request.task().priorityProfile()
             );
 
         // Step 5: Return routing and estimator data.
         return new DecisionPipelineResult(
             routing,
-            estimates
+            estimates,
+            routeInputs,
+            readiness, config, request.task().priorityProfile()
         );
     }
 }

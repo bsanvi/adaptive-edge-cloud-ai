@@ -3,7 +3,6 @@ package com.adaptive.decision.scoring;
 
 public final class DeviceReadinessScorer {
 
-    private static final double ADJUSTMENT_STRENGTH = 0.1;
 
     private DeviceReadinessScorer() {
     }
@@ -56,6 +55,12 @@ public final class DeviceReadinessScorer {
             double baseScore,
             double readiness) {
 
+        return adjustScore(route, baseScore, readiness, ScoringConfiguration.defaults().readinessStrength());
+    }
+
+    public static ReadinessResult adjustScore(String route, double baseScore, double readiness, double strength) {
+        if (!Double.isFinite(strength) || strength < 0 || strength > 1)
+            throw new IllegalArgumentException("Readiness strength must be between 0 and 1");
         if (!Double.isFinite(baseScore)
                 || baseScore < 0.0
                 || baseScore > 1.0) {
@@ -90,8 +95,8 @@ public final class DeviceReadinessScorer {
         }
 
         double adjustedScore =
-            (1.0 - ADJUSTMENT_STRENGTH) * baseScore
-            + ADJUSTMENT_STRENGTH * readiness;
+            (1.0 - strength) * baseScore
+            + strength * readiness;
 
         return new ReadinessResult(
             round4(readiness),

@@ -10,11 +10,6 @@ public final class DecisionWeights {
 
     public static Map<String, Double> defaults() {
 
-        return Map.of(
-            "time", 0.50,
-            "energy", 0.20,
-            "cost", 0.20,
-            "carbon", 0.10
-        );
+        return ScoringConfiguration.defaults().weights("BALANCED");
     }
 }

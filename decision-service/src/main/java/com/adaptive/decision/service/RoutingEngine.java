@@ -39,6 +39,13 @@ public final class RoutingEngine {
             String previousRoute,
             Double deviceReadiness) {
 
+        return evaluate(inputs, previousRoute, deviceReadiness,
+            com.adaptive.decision.scoring.ScoringConfiguration.defaults(), "BALANCED");
+    }
+
+    public static RoutingResult evaluate(List<RouteInput> inputs, String previousRoute,
+            Double deviceReadiness, com.adaptive.decision.scoring.ScoringConfiguration config, String profile) {
+        config.weights(profile);
         if (inputs == null) {
             throw new IllegalArgumentException(
                 "Route inputs cannot be null"
@@ -67,7 +74,7 @@ public final class RoutingEngine {
 
                 double baseScore =
                     WeightedScorer.score(
-                        input.metrics()
+                        input.metrics(), config, profile
                     ).score();
 
                 if (deviceReadiness != null) {
@@ -85,7 +92,7 @@ public final class RoutingEngine {
                         .adjustScore(
                             input.route(),
                             baseScore,
-                            deviceReadiness
+                            deviceReadiness, config.readinessStrength()
                         )
                         .adjustedScore();
 
@@ -118,7 +125,7 @@ public final class RoutingEngine {
         String selectedRoute =
             SwitchingPolicy.selectWithHysteresis(
                 candidates,
-                previousRoute
+                previousRoute, config.switchingImprovement()
             );
 
         String status = selectedRoute == null

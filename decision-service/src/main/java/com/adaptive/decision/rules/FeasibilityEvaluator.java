@@ -21,6 +21,13 @@ public class FeasibilityEvaluator {
             double networkLatencyMs,
             double networkBandwidthMbps) {
 
+        return evaluate(route, privacyLevel, deadlineMs, estimatedTimeMs, networkConnected,
+            networkLatencyMs, networkBandwidthMbps, com.adaptive.decision.scoring.ScoringConfiguration.defaults());
+    }
+
+    public static Result evaluate(String route, String privacyLevel, double deadlineMs,
+            Double estimatedTimeMs, boolean networkConnected, double networkLatencyMs,
+            double networkBandwidthMbps, com.adaptive.decision.scoring.ScoringConfiguration config) {
         List<String> reasons = new ArrayList<>();
 
         if (route == null
@@ -53,7 +60,7 @@ public class FeasibilityEvaluator {
                 route,
                 networkConnected,
                 networkLatencyMs,
-                networkBandwidthMbps)) {
+                networkBandwidthMbps, config.maxNetworkLatencyMs(), config.minBandwidthMbps())) {
             reasons.add("NETWORK_RESTRICTION");
         }
 

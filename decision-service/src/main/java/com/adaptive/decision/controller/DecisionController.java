@@ -31,6 +31,15 @@ public class DecisionController {
     public ResponseEntity<?> evaluate(
             @RequestBody DecisionRequest request) {
 
+        return evaluateInternal(request, false);
+    }
+
+    @PostMapping("/evaluate/detailed")
+    public ResponseEntity<?> evaluateDetailed(@RequestBody DecisionRequest request) {
+        return evaluateInternal(request, true);
+    }
+
+    private ResponseEntity<?> evaluateInternal(DecisionRequest request, boolean detailed) {
         long start = System.nanoTime();
 
         if (request == null
@@ -56,11 +65,19 @@ public class DecisionController {
             );
         }
 
+        try {
+            decisionPipeline.validateRequest(request);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
+
         DecisionSupportingInputs supportingInputs;
 
         try {
             supportingInputs = inputsProvider.resolve(request);
 
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         } catch (IllegalStateException ex) {
 
             return ResponseEntity.status(
@@ -94,7 +111,11 @@ public class DecisionController {
                     decisionTimeMs
                 );
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(detailed
+                ? DetailedDecisionResponseAssembler.assemble(response, result.routing(),
+                    result.routeInputs(), result.deviceReadiness(),
+                    result.scoringConfiguration(), result.priorityProfile())
+                : response);
 
         } catch (IllegalArgumentException ex) {
 

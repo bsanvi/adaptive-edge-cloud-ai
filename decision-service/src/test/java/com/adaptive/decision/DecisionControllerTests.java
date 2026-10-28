@@ -19,8 +19,9 @@ class DecisionControllerTests {
     @LocalServerPort
     int port;
 
-    @Test
-    void returns503WhenSupportingInputsAreNotConfigured()
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"evaluate", "evaluate/detailed"})
+    void returns503WhenSupportingInputsAreNotConfigured(String endpoint)
             throws Exception {
 
         String json = """
@@ -53,7 +54,7 @@ class DecisionControllerTests {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(
                 "http://localhost:" + port +
-                "/api/v1/decision/evaluate"
+                "/api/v1/decision/" + endpoint
             ))
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(json))

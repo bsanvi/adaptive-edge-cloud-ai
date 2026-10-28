@@ -82,7 +82,7 @@ public class EstimatorRequestAdapter {
 
         if (!validPercent(device.cpuPercent()) ||
                 !validPercent(device.ramPercent()) ||
-                !validPercent(device.batteryPercent())) {
+                (device.batteryAvailable() && !validPercent(device.batteryPercent()))) {
             throw new IllegalArgumentException(
                 "Device measurements must be valid percentages"
             );
@@ -91,7 +91,7 @@ public class EstimatorRequestAdapter {
         if (!Double.isFinite(network.latencyMs()) ||
                 network.latencyMs() < 0 ||
                 !Double.isFinite(network.bandwidthMbps()) ||
-                network.bandwidthMbps() <= 0) {
+                network.bandwidthMbps() < 0 || (network.connected() && network.bandwidthMbps() == 0)) {
             throw new IllegalArgumentException(
                 "Network measurements are invalid"
             );
@@ -126,8 +126,8 @@ public class EstimatorRequestAdapter {
             ),
             new EstimatorRequest.Network(
                 network.connected(),
-                network.bandwidthMbps(),
-                network.latencyMs(),
+                network.connected() ? network.bandwidthMbps() : null,
+                network.connected() ? network.latencyMs() : null,
                 inputs.networkSampledAt(),
                 inputs.networkSource()
             ),

@@ -3,9 +3,9 @@ package com.adaptive.decision.dto;
 public record TaskProfile(
     String taskId,
     String taskType,
-    long inputDataSizeBytes,
+    @com.fasterxml.jackson.annotation.JsonProperty(required = true) long inputDataSizeBytes,
     String complexity,
-    double deadlineMs,
+    @com.fasterxml.jackson.annotation.JsonProperty(required = true) double deadlineMs,
     String privacyLevel,
     String priorityProfile
 ) {

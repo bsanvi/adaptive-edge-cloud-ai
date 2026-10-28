@@ -4,9 +4,9 @@ import java.time.Instant;
 
 public record DeviceMetrics(
     Instant timestamp,
-    double cpuPercent,
-    double ramPercent,
-    double batteryPercent,
-    boolean batteryAvailable
+    @com.fasterxml.jackson.annotation.JsonProperty(required = true) double cpuPercent,
+    @com.fasterxml.jackson.annotation.JsonProperty(required = true) double ramPercent,
+    @com.fasterxml.jackson.annotation.JsonProperty(required = true) double batteryPercent,
+    @com.fasterxml.jackson.annotation.JsonProperty(required = true) boolean batteryAvailable
 ) {
 }

@@ -12,6 +12,13 @@ public class NetworkRules {
             double latencyMs,
             double bandwidthMbps) {
 
+        return isRouteAllowed(route, connected, latencyMs, bandwidthMbps,
+            com.adaptive.decision.scoring.ScoringConfiguration.defaults().maxNetworkLatencyMs(),
+            com.adaptive.decision.scoring.ScoringConfiguration.defaults().minBandwidthMbps());
+    }
+
+    public static boolean isRouteAllowed(String route, boolean connected, double latencyMs,
+            double bandwidthMbps, double maxLatencyMs, double minBandwidthMbps) {
         if (route == null) {
             return false;
         }
@@ -41,11 +48,11 @@ public class NetworkRules {
         }
 
         // Reject slow network conditions.
-        if (latencyMs > MAX_LATENCY_MS) {
+        if (latencyMs > maxLatencyMs) {
             return false;
         }
 
-        if (bandwidthMbps < MIN_BANDWIDTH_MBPS) {
+        if (bandwidthMbps < minBandwidthMbps) {
             return false;
         }
 

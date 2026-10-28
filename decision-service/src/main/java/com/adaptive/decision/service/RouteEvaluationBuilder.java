@@ -25,6 +25,11 @@ public final class RouteEvaluationBuilder {
             EstimatorResponse response,
             RouteCostInputs costs) {
 
+        return build(request, response, costs, com.adaptive.decision.scoring.ScoringConfiguration.defaults());
+    }
+
+    public static List<RoutingEngine.RouteInput> build(DecisionRequest request, EstimatorResponse response,
+            RouteCostInputs costs, com.adaptive.decision.scoring.ScoringConfiguration config) {
         if (request == null
                 || request.task() == null
                 || request.network() == null
@@ -79,7 +84,7 @@ public final class RouteEvaluationBuilder {
                 estimatedTime,
                 network.connected(),
                 network.latencyMs(),
-                network.bandwidthMbps()
+                network.bandwidthMbps(), config
             );
 
             List<String> reasons = new ArrayList<>(
@@ -88,6 +93,8 @@ public final class RouteEvaluationBuilder {
 
             if (!available) {
                 reasons.add("ESTIMATE_UNAVAILABLE");
+                if (estimate != null && estimate.reason() != null && !estimate.reason().isBlank())
+                    reasons.add("ESTIMATOR_" + estimate.reason());
             }
 
             if (available && !validNonnegative(

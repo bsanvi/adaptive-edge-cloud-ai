@@ -20,11 +20,11 @@ public class PrivacyRules {
             return false;
         }
 
-        if (privacy.equals("PRIVATE")) {
+        if ((privacy.equals("PRIVATE") || privacy.equals("CRITICAL"))) {
             return location.equals("EDGE");
         }
 
-        if (privacy.equals("PUBLIC")) {
+        if ((privacy.equals("PUBLIC") || privacy.equals("NORMAL"))) {
             return true;
         }
 

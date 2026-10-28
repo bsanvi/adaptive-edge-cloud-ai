@@ -21,6 +21,12 @@ public final class DetailedDecisionResponseAssembler {
             List<RoutingEngine.RouteInput> inputs,
             Double deviceReadiness) {
 
+        return assemble(decision, routing, inputs, deviceReadiness, ScoringConfiguration.defaults(), "BALANCED");
+    }
+
+    public static DetailedDecisionResponse assemble(DecisionResponse decision, RoutingResult routing,
+            List<RoutingEngine.RouteInput> inputs, Double deviceReadiness,
+            ScoringConfiguration config, String profile) {
         if (decision == null
                 || routing == null
                 || routing.evaluations() == null
@@ -81,7 +87,7 @@ public final class DetailedDecisionResponseAssembler {
             if (routeResult.feasible()) {
 
                 WeightedScorer.ScoreResult base =
-                    WeightedScorer.score(input.metrics());
+                    WeightedScorer.score(input.metrics(), config, profile);
 
                 double baseScore = base.score();
                 double expectedScore = baseScore;
@@ -100,7 +106,7 @@ public final class DetailedDecisionResponseAssembler {
                         DeviceReadinessScorer.adjustScore(
                             route,
                             baseScore,
-                            deviceReadiness
+                            deviceReadiness, config.readinessStrength()
                         ).adjustedScore();
 
                     if (!"CLOUD".equals(route)) {
@@ -126,7 +132,7 @@ public final class DetailedDecisionResponseAssembler {
                     readiness,
                     base.components(),
                     base.contributions(),
-                    DecisionWeights.defaults()
+                    config.weights(profile)
                 );
             }
 

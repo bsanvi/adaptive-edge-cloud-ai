@@ -3,9 +3,7 @@ package com.adaptive.decision.service;
 
 import com.adaptive.decision.dto.DecisionRequest;
 
-import org.springframework.stereotype.Service;
 
-@Service
 public class UnconfiguredDecisionInputsProvider
         implements DecisionInputsProvider {
 

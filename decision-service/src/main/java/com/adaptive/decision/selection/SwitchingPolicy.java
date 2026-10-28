@@ -6,7 +6,6 @@ import java.util.Set;
 
 public final class SwitchingPolicy {
 
-    private static final double THRESHOLD = 0.05;
     private static final double EPSILON = 1e-9;
     
     private static final Set<String> ROUTES =
@@ -19,6 +18,14 @@ public final class SwitchingPolicy {
             List<RouteSelector.Candidate> candidates,
             String previousRoute) {
 
+        return selectWithHysteresis(candidates, previousRoute,
+            com.adaptive.decision.scoring.ScoringConfiguration.defaults().switchingImprovement());
+    }
+
+    public static String selectWithHysteresis(List<RouteSelector.Candidate> candidates,
+            String previousRoute, double threshold) {
+        if (!Double.isFinite(threshold) || threshold < 0 || threshold > 1)
+            throw new IllegalArgumentException("Switching improvement must be between 0 and 1");
         // First, choose the highest-scoring feasible route.
         String bestRoute =
             RouteSelector.selectBest(candidates);
@@ -68,7 +75,7 @@ public final class SwitchingPolicy {
             previousCandidate.get().score();
 
         // Keep the old route for small improvements.
-        if (bestScore - previousScore <= THRESHOLD + EPSILON) {
+        if (bestScore - previousScore <= threshold + EPSILON) {
            return previousRoute;
 }
 

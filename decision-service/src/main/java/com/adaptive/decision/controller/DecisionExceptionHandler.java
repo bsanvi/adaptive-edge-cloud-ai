@@ -42,4 +42,10 @@ public class DecisionExceptionHandler {
                 "Route estimator returned an unsuccessful response"
             ));
     }
+    @ExceptionHandler(org.springframework.web.client.RestClientException.class)
+    public ResponseEntity<Map<String, String>> handleEstimatorProtocolError(
+            org.springframework.web.client.RestClientException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+            "status", "ESTIMATOR_ERROR", "message", "Route estimator returned an unreadable response"));
+    }
 }

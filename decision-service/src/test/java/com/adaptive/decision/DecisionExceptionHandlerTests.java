@@ -61,4 +61,12 @@ class DecisionExceptionHandlerTests {
             response.getBody().get("status")
         );
     }
+
+    @org.junit.jupiter.api.Test
+    void unreadableEstimatorResponseReturnsControlledError() {
+        var response = new com.adaptive.decision.controller.DecisionExceptionHandler()
+            .handleEstimatorProtocolError(new org.springframework.web.client.RestClientException("invalid upstream JSON"));
+        org.junit.jupiter.api.Assertions.assertEquals(503, response.getStatusCode().value());
+        org.junit.jupiter.api.Assertions.assertEquals("ESTIMATOR_ERROR", response.getBody().get("status"));
+    }
 }

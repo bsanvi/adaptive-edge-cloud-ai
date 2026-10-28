@@ -1,3 +1,15 @@
+package com.adaptive.decision;
+import com.adaptive.decision.dto.*;
+import com.adaptive.decision.service.*;
+import org.junit.jupiter.api.Test;
+import java.util.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+class DecisionResponseAssemblerTests {
+    private EstimatorResponse estimates() {
+        return new EstimatorResponse("task-001", "synthetic-v1", "SIMULATED",
+            Map.of("EDGE", WhatIfTests.estimate(100, 10)));
+    }
 
 @Test
 void preservesUnavailableRouteWithoutFabricatingValues() {
@@ -44,4 +56,6 @@ void preservesUnavailableRouteWithoutFabricatingValues() {
         evaluation.rejectionReasons()
             .contains("ESTIMATE_UNAVAILABLE")
     );
+}
+
 }

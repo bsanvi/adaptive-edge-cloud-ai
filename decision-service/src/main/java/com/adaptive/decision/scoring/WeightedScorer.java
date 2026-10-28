@@ -21,46 +21,42 @@ public final class WeightedScorer {
         Map<String, Double> contributions
     ) {}
 
-    // Normalization bounds from Python config.json
-    private static final double MAX_TIME_MS = 5000.0;
-    private static final double MAX_ENERGY_J = 100.0;
-    private static final double MAX_COST = 1.0;
-    private static final double MAX_CARBON_G = 0.1;
-
-    // Weights from Python config.json
-    private static final double TIME_WEIGHT = 0.50;
-    private static final double ENERGY_WEIGHT = 0.20;
-    private static final double COST_WEIGHT = 0.20;
-    private static final double CARBON_WEIGHT = 0.10;
-
     public static ScoreResult score(Metrics metrics) {
+        return score(metrics, ScoringConfiguration.defaults(), "BALANCED");
+    }
 
+    public static ScoreResult score(Metrics metrics, ScoringConfiguration config, String profile) {
+        var weights = config.weights(profile);
+        var bounds = config.bounds();
         if (metrics == null) {
             throw new IllegalArgumentException(
                 "Metrics cannot be null"
             );
         }
 
+        for (double value : new double[]{metrics.timeMs(), metrics.energyJ(), metrics.monetaryCost(), metrics.carbonG()}) {
+            if (!Double.isFinite(value) || value < 0) throw new IllegalArgumentException("Scoring metrics must be finite and nonnegative");
+        }
         double time = Normalizer.lowerIsBetter(
-            metrics.timeMs(), 0.0, MAX_TIME_MS
+            metrics.timeMs(), bounds.get("time").min(), bounds.get("time").max()
         );
 
         double energy = Normalizer.lowerIsBetter(
-            metrics.energyJ(), 0.0, MAX_ENERGY_J
+            metrics.energyJ(), bounds.get("energy").min(), bounds.get("energy").max()
         );
 
         double cost = Normalizer.lowerIsBetter(
-            metrics.monetaryCost(), 0.0, MAX_COST
+            metrics.monetaryCost(), bounds.get("cost").min(), bounds.get("cost").max()
         );
 
         double carbon = Normalizer.lowerIsBetter(
-            metrics.carbonG(), 0.0, MAX_CARBON_G
+            metrics.carbonG(), bounds.get("carbon").min(), bounds.get("carbon").max()
         );
 
-        double timeContribution = time * TIME_WEIGHT;
-        double energyContribution = energy * ENERGY_WEIGHT;
-        double costContribution = cost * COST_WEIGHT;
-        double carbonContribution = carbon * CARBON_WEIGHT;
+        double timeContribution = time * weights.get("time");
+        double energyContribution = energy * weights.get("energy");
+        double costContribution = cost * weights.get("cost");
+        double carbonContribution = carbon * weights.get("carbon");
 
         double total =
             timeContribution +

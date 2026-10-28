@@ -1,0 +1,24 @@
+{
+  "task": {
+    "taskId": "research",
+    "taskType": "SENSOR_ANOMALY",
+    "inputDataSizeBytes": 1024,
+    "complexity": "LOW",
+    "deadlineMs": 1000,
+    "privacyLevel": "PUBLIC",
+    "priorityProfile": "BALANCED"
+  },
+  "device": {
+    "timestamp": "2026-10-28T00:00:00Z",
+    "cpuPercent": 100,
+    "ramPercent": 100,
+    "batteryPercent": 50,
+    "batteryAvailable": true
+  },
+  "network": {
+    "connected": true,
+    "latencyMs": 20,
+    "bandwidthMbps": 50
+  },
+  "currentRoute": null
+}
