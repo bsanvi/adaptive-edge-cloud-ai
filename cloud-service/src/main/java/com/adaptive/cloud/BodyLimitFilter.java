@@ -13,7 +13,7 @@ public class BodyLimitFilter extends OncePerRequestFilter {
     private static final int MAX=1048576;
     @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain)
             throws ServletException,IOException {
-        if (!"POST".equals(request.getMethod())) {chain.doFilter(request,response);return;}
+        if (request.getRequestURI().startsWith("/api/v2/") || !"POST".equals(request.getMethod())) {chain.doFilter(request,response);return;}
         if(request.getContentLengthLong()>MAX){reject(response);return;}
         byte[] bytes=request.getInputStream().readNBytes(MAX+1);
         if(bytes.length>MAX){reject(response);return;}

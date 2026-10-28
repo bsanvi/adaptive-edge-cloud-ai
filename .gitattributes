@@ -1,0 +1,3 @@
+contracts/image-model/imagenet_classes.txt text eol=lf
+contracts/image-model/metadata.properties text eol=lf
+*.onnx binary
