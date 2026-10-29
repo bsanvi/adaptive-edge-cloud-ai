@@ -18,7 +18,7 @@ public class IntegrationServiceStatus {
             @Value("${integration.edge-url:http://127.0.0.1:8081}") String edgeUrl,
             @Value("${integration.cloud-url:http://127.0.0.1:8083}") String cloudUrl,
             @Value("${integration.estimator-url:http://127.0.0.1:8084}") String estimatorUrl,
-            @Value("${integration.decision-url:http://127.0.0.1:8001}") String decisionUrl) {
+            @Value("${integration.decision-url:http://127.0.0.1:8082}") String decisionUrl) {
         this.edgeUrl=edgeUrl; this.cloudUrl=cloudUrl;
         this.estimatorUrl=estimatorUrl; this.decisionUrl=decisionUrl;
     }
@@ -37,10 +37,10 @@ public class IntegrationServiceStatus {
     public Map<String,Boolean> statuses(){
         Map<String,Boolean> r=new LinkedHashMap<>();
         r.put("Dashboard",true);
-        r.put("Edge", available(edgeUrl,"/api/v1/edge/anomaly/ready"));
+        r.put("Edge", available(edgeUrl,"/api/v2/edge/ready"));
         r.put("Decision",available(decisionUrl,"/health"));
-        r.put("Cloud",available(cloudUrl,"/api/v1/cloud/ready"));
-        r.put("Estimator",available(estimatorUrl,"/api/v1/estimate/health"));
+        r.put("Cloud",available(cloudUrl,"/api/v2/cloud/ready"));
+        r.put("Estimator",available(estimatorUrl,"/api/v2/estimator/calibration"));
         return r;
     }
 }
