@@ -1,0 +1,40 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+benchmarks/v2/edge_v2_idle_runs_*.csv
+benchmarks/v2/edge_v2_idle_summary_*.csv
+benchmarks/v2/edge_v2_idle_metadata_*.json
+benchmarks/v2/edge_v2_cpu_loaded_runs_*.csv
+benchmarks/v2/edge_v2_cpu_loaded_summary_*.csv
+benchmarks/v2/edge_v2_cpu_loaded_metadata_*.json
+tools/__pycache__/
