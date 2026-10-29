@@ -1,0 +1,1 @@
+This directory is an example placeholder only, not a dataset. Actual imported datasets live under dashboard-orchestrator/research-datasets/ and are read by the Java registry controller. See ../docs/DATASETS.md in package root.

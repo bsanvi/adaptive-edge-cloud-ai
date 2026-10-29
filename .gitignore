@@ -6,3 +6,8 @@
 *.mv.db
 *.trace.db
 __pycache__/
+/dashboard-orchestrator/research-datasets/
+/research-dashboard/tsconfig.tsbuildinfo
+*batch-backup-*
+/research-dashboard/node_modules/
+/research-dashboard/dist/

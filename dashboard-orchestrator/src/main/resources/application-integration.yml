@@ -1,0 +1,4 @@
+# Local-only integration UI; do not expose unauthenticated history/reports to the LAN.
+# Cloud can still be accessed remotely using --integration.cloud-url=http://LAPTOP2_IP:8083.
+server:
+  address: 127.0.0.1

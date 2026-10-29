@@ -1,19 +1,24 @@
 package com.team.aecai.orchestrator.integration;
 
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.annotation.PostConstruct;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 import java.util.Map;
 
-/** Separate experiment history table; leaves Person 4's original H2 tables untouched. */
+/** Preserves the existing integrated_runs table and adds complete execution reports. */
 @Repository
 @Profile("integration")
 public class IntegratedHistory {
     private final JdbcTemplate jdbc;
-    public IntegratedHistory(JdbcTemplate jdbc) { this.jdbc = jdbc; }
+    private final JsonMapper mapper;
+    public IntegratedHistory(JdbcTemplate jdbc, JsonMapper mapper) {
+        this.jdbc = jdbc;
+        this.mapper = mapper;
+    }
 
     @PostConstruct
     public void createTable() {
@@ -32,17 +37,39 @@ public class IntegratedHistory {
                 error_text VARCHAR(2000)
             )
             """);
+        jdbc.execute("ALTER TABLE integrated_runs ADD COLUMN IF NOT EXISTS report_json CLOB");
+        jdbc.execute("CREATE TABLE IF NOT EXISTS integrated_analyses (analysis_id VARCHAR(36) PRIMARY KEY, report_json CLOB NOT NULL)");
     }
 
-    public void save(IntegratedOrchestrator.RunResult r) {
-        jdbc.update("""
-            INSERT INTO integrated_runs
-            (task_id, status, selected_route, executed_route, fallback_used,
-             prediction, confidence, total_time_ms, error_text)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, r.taskId(), r.status(), r.selectedRoute(), r.executedRoute(),
-                r.fallbackUsed(), r.prediction(), r.confidence(), r.totalTimeMs(),
-                r.error());
+    public void saveAnalysis(IntegratedOrchestrator.Analysis analysis) {
+        jdbc.update("INSERT INTO integrated_analyses (analysis_id, report_json) VALUES (?, ?)",
+                analysis.analysisId(), mapper.writeValueAsString(analysis));
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> analysis(String id) {
+        var rows = jdbc.query("SELECT report_json FROM integrated_analyses WHERE analysis_id = ?", (rs,n) -> rs.getString(1), id);
+        return rows.isEmpty() ? null : mapper.readValue(rows.get(0), Map.class);
+    }
+
+    public long save(IntegratedOrchestrator.RunResult r) {
+        final String json;
+        try { json = mapper.writeValueAsString(r); }
+        catch (Exception e) { throw new IllegalStateException("Cannot serialize execution report", e); }
+        var key = new org.springframework.jdbc.support.GeneratedKeyHolder();
+        jdbc.update(connection -> {
+            var statement = connection.prepareStatement("""
+                INSERT INTO integrated_runs
+                (task_id, status, selected_route, executed_route, fallback_used,
+                 prediction, confidence, total_time_ms, error_text, report_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, new String[]{"ID"});
+            Object[] values = {r.taskId(), r.status(), r.selectedRoute(), r.executedRoute(),
+                    r.fallbackUsed(), r.prediction(), r.confidence(), r.totalTimeMs(), r.error(), json};
+            for (int i=0; i<values.length; i++) statement.setObject(i+1, values[i]);
+            return statement;
+        }, key);
+        return java.util.Objects.requireNonNull(key.getKey(), "Missing generated report ID").longValue();
     }
 
     public List<Map<String, Object>> recent(int limit) {
@@ -52,5 +79,18 @@ public class IntegratedHistory {
                    total_time_ms, error_text
             FROM integrated_runs ORDER BY id DESC LIMIT ?
             """, Math.min(100, Math.max(1, limit)));
+    }
+
+    public Map<String,Object> report(long id) {
+        List<String> rows=jdbc.query(
+            "SELECT report_json FROM integrated_runs WHERE id = ?",
+            (rs,n)->rs.getString(1), id);
+        if(rows.isEmpty() || rows.get(0)==null) return null;
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String,Object> report=mapper.readValue(rows.get(0),Map.class);
+            report.put("reportId", id);
+            return report;
+        } catch(Exception e) { throw new IllegalStateException("Stored report is unreadable",e); }
     }
 }

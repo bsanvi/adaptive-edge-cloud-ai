@@ -1,0 +1,11 @@
+import {$,esc,pct,money,reportFor,routeExplanation,routeClass,barCharts,estimateRows,storeRun} from './common.js';
+import {downloadPDF} from './report-pdf.js';
+const id=new URLSearchParams(location.search).get('id');
+try{
+ const d=await reportFor(id);storeRun(d);
+ $('contents').classList.remove('hidden');$('status').textContent=d.status||'UNKNOWN';$('status').className='chip '+(d.status==='SUCCESS'?'success':'failed');$('task-id').textContent='Task '+(d.taskId||'—');$('route').textContent=(d.executedRoute||d.selectedRoute||'NO ROUTE')+' EXECUTION';$('route').style.color=({EDGE:'var(--purple)',CLOUD:'var(--blue)',HYBRID:'var(--amber)'})[d.executedRoute]||'var(--ink)';$('summary').textContent=d.status==='SUCCESS'?`The ${d.executedRoute} route completed the task and returned ${d.prediction||'a prediction'}.`:'The task did not complete successfully; review the details below.';
+ $('measured').textContent=money(d.totalTimeMs)+' ms';$('prediction').textContent=d.prediction||'—';$('confidence').textContent=pct(d.confidence);$('confidence-bar').style.width=`${Math.min(100,Math.max(0,100*(d.confidence||0)))}%`;
+ $('actual').textContent=d.executedRoute||'—';$('actual').style.fontSize='24px';$('fallback').textContent=d.fallbackUsed?'Fallback to Edge was used':'No fallback used';$('latency').textContent=money(d.network?.latencyMs)+' ms';$('latency').style.fontSize='24px';$('bandwidth').textContent=money(d.network?.bandwidthMbps)+' Mbps bandwidth';$('why').textContent=routeExplanation(d);
+ $('bars').innerHTML=barCharts(d.estimates);$('energy').innerHTML=estimateRows(d.estimates).map(r=>`<div class="service"><span><span class="chip ${routeClass(r.name)}">${r.name}</span> ${r.available?'Energy estimate':'Unavailable'}</span><strong>${r.available?money(r.energy)+' J':'—'}</strong></div>`).join('');$('decision-json').textContent=JSON.stringify(d.decision||{},null,2);$('estimate-json').textContent=JSON.stringify(d.estimates||{},null,2);
+ $('pdf').onclick=async()=>{let btn=$('pdf');btn.disabled=true;btn.textContent='Generating PDF…';try{await downloadPDF(d)}catch(e){alert('PDF export failed: '+e.message)}finally{btn.disabled=false;btn.textContent='↓ Download PDF report'}};
+}catch(e){$('error').classList.remove('hidden');$('error').textContent=e.message+' Go to Overview to run a new task.'}

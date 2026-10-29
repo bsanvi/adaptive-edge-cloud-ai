@@ -9,6 +9,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.time.Instant;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.web.client.HttpClientErrorException;
 import java.util.*;
 
 /**
@@ -18,6 +20,7 @@ import java.util.*;
  * All remote calls use HTTP/1.1 through SimpleClientHttpRequestFactory.
  */
 @Service
+@org.springframework.scheduling.annotation.EnableScheduling
 @Profile("integration")
 public class IntegratedOrchestrator {
     public record RunTask(String taskId, List<Double> samples, double deadlineMs,
@@ -27,7 +30,48 @@ public class IntegratedOrchestrator {
             String executedRoute, boolean fallbackUsed, String prediction,
             Double confidence, double totalTimeMs, String explanation,
             String error, Map<String, Object> decision,
-            Map<String, Object> estimates, Map<String, Object> network) {}
+            Map<String, Object> estimates, Map<String, Object> network, Long reportId) {
+        public RunResult(String taskId, String status, String selectedRoute, String executedRoute,
+                boolean fallbackUsed, String prediction, Double confidence, double totalTimeMs,
+                String explanation, String error, Map<String,Object> decision, Map<String,Object> estimates,
+                Map<String,Object> network) {
+            this(taskId,status,selectedRoute,executedRoute,fallbackUsed,prediction,confidence,totalTimeMs,
+                    explanation,error,decision,estimates,network,null);
+        }
+        RunResult withReportId(long id) {
+            return new RunResult(taskId,status,selectedRoute,executedRoute,fallbackUsed,prediction,confidence,
+                    totalTimeMs,explanation,error,decision,estimates,network,id);
+        }
+    }
+
+    public record Analysis(String analysisId, Instant expiresAt, RunResult report) {}
+    private record Pending(RunTask task, Analysis analysis, long preparedNanos) {}
+    private final ConcurrentHashMap<String, Pending> pending = new ConcurrentHashMap<>();
+    private static final long REVIEW_TTL_NANOS = 60_000_000_000L;
+
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 30000)
+    public void expirePending() {
+        pending.entrySet().removeIf(e -> System.nanoTime() - e.getValue().preparedNanos() > REVIEW_TTL_NANOS);
+    }
+
+    public synchronized Analysis analyze(RunTask task) {
+        expirePending();
+        if (pending.size() >= 100) throw new IllegalStateException("Too many pending analyses; wait one minute");
+        RunResult report = process(task, null, true);
+        String id = UUID.randomUUID().toString();
+        Analysis analysis = new Analysis(id, Instant.now().plusSeconds(60), report);
+        history.saveAnalysis(analysis);
+        if ("ANALYZED".equals(report.status())) pending.put(id, new Pending(task, analysis, System.nanoTime()));
+        return analysis;
+    }
+
+    public RunResult executeAnalysis(String id) {
+        Pending prepared = pending.remove(id); // single consumer, including concurrent requests
+        if (prepared == null) throw new IllegalStateException("Analysis unavailable or already executed; analyze again");
+        if (System.nanoTime() - prepared.preparedNanos() > REVIEW_TTL_NANOS)
+            throw new IllegalStateException("Analysis expired; analyze again with fresh metrics");
+        return process(prepared.task(), prepared.analysis(), false);
+    }
 
     private final RestClient edge;
     private final RestClient cloud;
@@ -65,6 +109,10 @@ public class IntegratedOrchestrator {
     }
 
     public RunResult run(RunTask task) {
+        return process(task, null, false);
+    }
+
+    private RunResult process(RunTask task, Analysis prepared, boolean analyzeOnly) {
         validate(task);
         final long started = System.nanoTime();
         final String requestId = UUID.randomUUID().toString();
@@ -75,10 +123,19 @@ public class IntegratedOrchestrator {
         Map<String, Object> estimates = Map.of();
         Map<String, Object> network = Map.of();
         String status = "SUCCESS", error = null;
+        double analysisMs = prepared == null ? 0 : prepared.report().totalTimeMs();
+        Map<String, Object> audit = new LinkedHashMap<>();
+        List<Map<String, Object>> attempts = new ArrayList<>();
+        audit.put("acceptedAt", Instant.now().toString());
+        audit.put("task", Map.of("taskId", task.taskId(), "sampleCount", task.samples().size(),
+                "complexity", task.complexity(), "deadlineMs", task.deadlineMs(), "privacyRequired", task.privacyRequired()));
+        audit.put("deadlineScope", "Analysis processing plus execution; user review time excluded; analysis expires after 60 seconds");
 
         try {
+            if (prepared == null) {
             // Real device telemetry from Person 1's existing metrics endpoint.
             Map<String, Object> device = get(edge, "/edge/metrics");
+            audit.put("device", device);
             boolean edgeCapable = isReady(edge, "/api/v1/edge/anomaly/ready");
             boolean cloudCapable = isReady(cloud, "/api/v1/cloud/ready");
 
@@ -87,6 +144,7 @@ public class IntegratedOrchestrator {
             network.put("connected", probe.connected());
             network.put("latencyMs", probe.latencyMs());
             network.put("bandwidthMbps", probe.bandwidthMbps());
+            network.put("sampledAt", Instant.now().toString());
             network.put("source", probe.connected() ? "MEASURED_APPROXIMATE" : "UNAVAILABLE");
 
             Map<String, Object> estimatesRequest = new LinkedHashMap<>();
@@ -94,8 +152,8 @@ public class IntegratedOrchestrator {
             estimatesRequest.put("task", Map.of(
                     "taskId", task.taskId(), "taskType", "SENSOR_ANOMALY",
                     "complexity", task.complexity().toUpperCase(Locale.ROOT),
-                    "dataSizeBytes", task.samples().size() * 8L,
-                    "estimatedFeatureBytes", 32,
+                    "dataSizeBytes", serializedSize(Map.of("requestId", requestId, "taskId", task.taskId(), "privacyLevel", "NORMAL", "samples", task.samples())),
+                    "estimatedFeatureBytes", serializedSize(Map.of("requestId", requestId, "taskId", task.taskId(), "privacyLevel", "NORMAL", "featureSchemaVersion", "features-v1", "features", List.of(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0))),
                     "estimatedResultBytes", 128));
             Map<String, Object> estDevice = new LinkedHashMap<>();
             estDevice.put("cpuPercent", number(device.get("cpu_percent")));
@@ -112,12 +170,15 @@ public class IntegratedOrchestrator {
             estimatesRequest.put("network", estNetwork);
             estimatesRequest.put("edgeCapable", edgeCapable);
             estimatesRequest.put("cloudCapable", cloudCapable && probe.connected());
-            estimatesRequest.put("remainingDeadlineMs", task.deadlineMs());
+            estimatesRequest.put("remainingDeadlineMs", Math.max(0.001, task.deadlineMs() - elapsed(started)));
             estimatesRequest.put("edgeCarbonIntensityGPerKwh", edgeCarbonIntensity);
             estimatesRequest.put("cloudCarbonIntensityGPerKwh", cloudCarbonIntensity);
             Map<String, Object> estimation = post(estimator,
                     "/api/v1/estimate/routes", estimatesRequest);
             estimates = nested(estimation, "estimates");
+            audit.put("payloadSizeScope", "UTF-8 JSON raw request; feature and result sizes are representative estimates, excluding HTTP headers");
+            audit.put("estimatorRequest", estimatesRequest);
+            audit.put("estimatorResponse", estimation);
 
             Map<String, Object> pythonRequest = new LinkedHashMap<>();
             pythonRequest.put("task", Map.of(
@@ -125,7 +186,7 @@ public class IntegratedOrchestrator {
                     "task_type", "sensor_anomaly",
                     "data_size_mb", task.samples().size() * 8.0 / 1_000_000,
                     "complexity", complexityScore(task.complexity()),
-                    "deadline_ms", task.deadlineMs(),
+                    "deadline_ms", Math.max(0.001, task.deadlineMs() - elapsed(started)),
                     "privacy_required", task.privacyRequired()));
             Map<String, Object> pDevice = new LinkedHashMap<>();
             pDevice.put("cpu_percent", number(device.get("cpu_percent")));
@@ -138,7 +199,18 @@ public class IntegratedOrchestrator {
                     "bandwidth_mbps", probe.connected() ? probe.bandwidthMbps() : 0.0));
             pythonRequest.put("estimates", decisionEstimates(estimates, assumedUsdPerMb));
             pythonRequest.put("previous_location", normalizedPrevious(task.previousRoute()));
+            audit.put("decisionRequest", pythonRequest);
+            long decisionStarted = System.nanoTime();
             decisionResponse = post(decision, "/decision/evaluate", pythonRequest);
+            audit.put("decisionRoundTripMs", elapsed(decisionStarted));
+            audit.put("decisionRecordedAt", Instant.now().toString());
+            } else {
+                decisionResponse = new LinkedHashMap<>(prepared.report().decision());
+                estimates = prepared.report().estimates();
+                network = prepared.report().network();
+                audit.putAll(optionalMap(decisionResponse.get("orchestrationAudit")));
+                audit.put("analysisId", prepared.analysisId());
+            }
             explanation = String.valueOf(decisionResponse.getOrDefault("explanation", ""));
 
             if ("no_feasible_route".equals(decisionResponse.get("status"))) {
@@ -161,18 +233,31 @@ public class IntegratedOrchestrator {
                 if (!isAvailable(estimates, selected)) {
                     throw new IllegalStateException("Selected route has no valid estimate");
                 }
+                if (analyzeOnly) {
+                    status = "ANALYZED";
+                } else {
+                if (prepared != null) {
+                    if (("EDGE".equals(selected) || "HYBRID".equals(selected)) && !isReady(edge, "/api/v1/edge/anomaly/ready"))
+                        throw new IllegalStateException("Edge is no longer ready; analyze again");
+                    if (!"EDGE".equals(selected) && !isReady(cloud, "/api/v1/cloud/ready"))
+                        throw new IllegalStateException("Cloud is no longer ready; analyze again");
+                }
+                double remaining = task.deadlineMs() - analysisMs - elapsed(started);
+                if (number(optionalMap(estimates.get(selected)).get("estimatedLatencyMs")) > remaining)
+                    throw new IllegalStateException("Insufficient remaining deadline before execution");
                 try {
                     Map<String, Object> inference = infer(
-                            selected, task, requestId);
+                            selected, task, requestId, attempts);
                     label = String.valueOf(inference.get("prediction"));
-                    confidence = number(inference.get("confidence"));
+                    confidence = nullableNumber(inference.get("confidence"));
                     executed = selected;
                 } catch (RestClientException remoteFailure) {
-                    if (!"EDGE".equals(selected)
-                            && canFallbackToEdge(estimates, task.deadlineMs(), elapsed(started))) {
-                        Map<String, Object> inference = infer("EDGE", task, requestId);
+                    if (!(remoteFailure instanceof HttpClientErrorException) && !"EDGE".equals(selected)
+                            && !rejectedByDecision(decisionResponse, "edge")
+                            && canFallbackToEdge(estimates, task.deadlineMs(), analysisMs + elapsed(started))) {
+                        Map<String, Object> inference = infer("EDGE", task, requestId, attempts);
                         label = String.valueOf(inference.get("prediction"));
-                        confidence = number(inference.get("confidence"));
+                        confidence = nullableNumber(inference.get("confidence"));
                         executed = "EDGE";
                         fallback = true;
                         explanation += " | Remote execution failed; fallback to Edge.";
@@ -180,19 +265,49 @@ public class IntegratedOrchestrator {
                         throw remoteFailure;
                     }
                 }
+                }
             }
         } catch (RuntimeException ex) {
             status = "FAILED";
-            error = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+            error = ex instanceof org.springframework.web.client.RestClientResponseException response
+                    ? "Upstream HTTP " + response.getStatusCode().value()
+                    : ex.getClass().getSimpleName() + ": " + ex.getMessage();
         }
+        audit.put("attempts", attempts);
+        audit.put("processingTimeMs", analysisMs + elapsed(started));
+        audit.put("deadlineMet", "SUCCESS".equals(status) ? analysisMs + elapsed(started) <= task.deadlineMs() : null);
+        decisionResponse = new LinkedHashMap<>(decisionResponse);
+        decisionResponse.put("orchestrationAudit", audit);
         RunResult result = new RunResult(task.taskId(), status, selected, executed,
-                fallback, label, confidence, elapsed(started), explanation, error,
+                fallback, label, confidence, analysisMs + elapsed(started), explanation, error,
                 decisionResponse, estimates, network);
-        history.save(result);
+        if (!analyzeOnly) {
+            long id = history.save(result);
+            if (id > 0) result = result.withReportId(id);
+        }
         return result;
     }
 
-    private Map<String, Object> infer(String route, RunTask task, String requestId) {
+    private Map<String, Object> infer(String route, RunTask task, String requestId, List<Map<String,Object>> attempts) {
+        long start = System.nanoTime();
+        Map<String,Object> attempt = new LinkedHashMap<>();
+        attempt.put("route", route);
+        attempt.put("startedAt", Instant.now().toString());
+        attempts.add(attempt);
+        try {
+            Map<String,Object> result = inferRoute(route, task, requestId);
+            if (!(result.get("prediction") instanceof String label) || label.isBlank())
+                throw new IllegalStateException("Inference returned no prediction");
+            attempt.put("status", "SUCCESS");
+            return result;
+        } catch (RuntimeException ex) {
+            attempt.put("status", "FAILED");
+            attempt.put("errorType", ex.getClass().getSimpleName());
+            throw ex;
+        } finally { attempt.put("elapsedMs", elapsed(start)); }
+    }
+
+    private Map<String, Object> inferRoute(String route, RunTask task, String requestId) {
         Map<String, Object> input = Map.of("requestId", requestId,
                 "taskId", task.taskId(), "samples", task.samples());
         return switch (route) {
@@ -277,6 +392,13 @@ public class IntegratedOrchestrator {
         return normalized;
     }
 
+    private static boolean rejectedByDecision(Map<String,Object> decision, String route) {
+        Object rejection = optionalMap(decision.get("rejected_locations")).get(route);
+        if (rejection instanceof Collection<?> reasons) return !reasons.isEmpty();
+        if (rejection instanceof Map<?,?> reasons) return !reasons.isEmpty();
+        return rejection != null && !rejection.toString().isBlank();
+    }
+
     private boolean canFallbackToEdge(Map<String, Object> routes, double deadlineMs, double elapsedMs) {
         if (!isAvailable(routes, "EDGE")) return false;
         double estimatedEdgeMs = number(optionalMap(routes.get("EDGE")).get("estimatedLatencyMs"));
@@ -335,6 +457,9 @@ public class IntegratedOrchestrator {
             throw new IllegalStateException("Missing or invalid numeric field: " + value);
         }
         return n.doubleValue();
+    }
+    private static int serializedSize(Object value) {
+        return tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsBytes(value).length;
     }
     private static double elapsed(long started) {
         return (System.nanoTime() - started) / 1_000_000.0;
