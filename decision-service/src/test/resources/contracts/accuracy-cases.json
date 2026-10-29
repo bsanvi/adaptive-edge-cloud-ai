@@ -1,0 +1,2131 @@
+[
+  {
+    "expectedRoute": "CLOUD",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "Busy local device; cloud wins adjusted utility",
+    "scenario": {
+      "name": "normal-busy",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE"
+    ],
+    "description": "PRIVATE blocks remote routes",
+    "scenario": {
+      "name": "private",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PRIVATE",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE"
+    ],
+    "description": "CRITICAL blocks remote even with cost priority",
+    "scenario": {
+      "name": "critical",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "CRITICAL",
+          "priorityProfile": "COST_PRIORITY"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE"
+    ],
+    "description": "Disconnected remote routes rejected",
+    "scenario": {
+      "name": "offline",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": false,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "CLOUD",
+    "feasibleRoutes": [
+      "CLOUD"
+    ],
+    "description": "100ms cloud estimate equals deadline",
+    "scenario": {
+      "name": "deadline-equality-cloud",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 100,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": null,
+    "feasibleRoutes": [],
+    "description": "All route estimates exceed 50ms budget",
+    "scenario": {
+      "name": "deadline-impossible",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 50,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "CPU/RAM readiness tips the tradeoff",
+    "scenario": {
+      "name": "device-ready",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 0,
+          "ramPercent": 0,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "HYBRID",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "Hypothetical reduced Hybrid estimate wins",
+    "scenario": {
+      "name": "hybrid-winner",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 1000,
+            "energyEstimateJ": 80,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 1000,
+            "energyEstimateJ": 80,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "CLOUD",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "Latency profile favors cloud",
+    "scenario": {
+      "name": "latency-profile",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "LATENCY_PRIORITY"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "Total energy profile favors lower-joule edge",
+    "scenario": {
+      "name": "energy-profile",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "ENERGY_PRIORITY"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "Monetary preference changes route",
+    "scenario": {
+      "name": "cost-profile",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "COST_PRIORITY"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0.3,
+          "HYBRID": 0.4
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "CLOUD",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "Balanced comparison with same cost estimates",
+    "scenario": {
+      "name": "same-costs-balanced",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0.3,
+          "HYBRID": 0.4
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "CLOUD",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "Ready Edge gain below .05 retains cloud",
+    "scenario": {
+      "name": "hysteresis-keeps-cloud",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 0,
+          "ramPercent": 0,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": "CLOUD"
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE"
+    ],
+    "description": "Infeasible previous cloud cannot be retained",
+    "scenario": {
+      "name": "privacy-overrides-hysteresis",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PRIVATE",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": "CLOUD"
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE"
+    ],
+    "description": "RTT above configured 200ms bound",
+    "scenario": {
+      "name": "poor-rtt",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 201,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE"
+    ],
+    "description": "Bandwidth below configured 5Mbps bound",
+    "scenario": {
+      "name": "poor-bandwidth",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 4.99
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "CLOUD",
+    "feasibleRoutes": [
+      "EDGE",
+      "CLOUD",
+      "HYBRID"
+    ],
+    "description": "200ms RTT and 5Mbps equality accepted",
+    "scenario": {
+      "name": "network-boundary",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 200,
+          "bandwidthMbps": 5
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 400,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "EDGE",
+    "feasibleRoutes": [
+      "EDGE"
+    ],
+    "description": "Private Edge finishes exactly at budget",
+    "scenario": {
+      "name": "private-deadline-equality",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 500,
+          "privacyLevel": "PRIVATE",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": null,
+    "feasibleRoutes": [],
+    "description": "Privacy and deadline together leave no route",
+    "scenario": {
+      "name": "private-deadline-miss",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 499,
+          "privacyLevel": "PRIVATE",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 500,
+            "energyEstimateJ": 20,
+            "deviceEnergyEstimateJ": 20,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 300,
+            "energyEstimateJ": 50,
+            "deviceEnergyEstimateJ": 50,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": "CLOUD",
+    "feasibleRoutes": [
+      "CLOUD"
+    ],
+    "description": "Local capability estimates unavailable",
+    "scenario": {
+      "name": "edge-unavailable",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 0,
+          "ramPercent": 0,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {
+          "EDGE": {
+            "estimateAvailable": false,
+            "reason": "EDGE_UNAVAILABLE",
+            "estimatedLatencyMs": null,
+            "energyEstimateJ": null,
+            "deviceEnergyEstimateJ": null,
+            "cloudEnergyEstimateJ": null,
+            "transferEnergyEstimateJ": null,
+            "carbonEstimateG": null,
+            "uploadBytes": null,
+            "downloadBytes": null,
+            "communicationMb": null,
+            "resourcePressure": null,
+            "source": "SIMULATED"
+          },
+          "CLOUD": {
+            "estimateAvailable": true,
+            "reason": null,
+            "estimatedLatencyMs": 100,
+            "energyEstimateJ": 40,
+            "deviceEnergyEstimateJ": 40,
+            "cloudEnergyEstimateJ": 0,
+            "transferEnergyEstimateJ": 0,
+            "carbonEstimateG": 0.001,
+            "uploadBytes": 0,
+            "downloadBytes": 0,
+            "communicationMb": 0,
+            "resourcePressure": 0.1,
+            "source": "SIMULATED"
+          },
+          "HYBRID": {
+            "estimateAvailable": false,
+            "reason": "EDGE_UNAVAILABLE",
+            "estimatedLatencyMs": null,
+            "energyEstimateJ": null,
+            "deviceEnergyEstimateJ": null,
+            "cloudEnergyEstimateJ": null,
+            "transferEnergyEstimateJ": null,
+            "carbonEstimateG": null,
+            "uploadBytes": null,
+            "downloadBytes": null,
+            "communicationMb": null,
+            "resourcePressure": null,
+            "source": "SIMULATED"
+          }
+        }
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  },
+  {
+    "expectedRoute": null,
+    "feasibleRoutes": [],
+    "description": "Missing estimates are never zero costs",
+    "scenario": {
+      "name": "all-estimates-unavailable",
+      "request": {
+        "task": {
+          "taskId": "research",
+          "taskType": "SENSOR_ANOMALY",
+          "inputDataSizeBytes": 1024,
+          "complexity": "LOW",
+          "deadlineMs": 1000,
+          "privacyLevel": "PUBLIC",
+          "priorityProfile": "BALANCED"
+        },
+        "device": {
+          "timestamp": "2026-10-28T00:00:00Z",
+          "cpuPercent": 100,
+          "ramPercent": 100,
+          "batteryPercent": 50,
+          "batteryAvailable": true
+        },
+        "network": {
+          "connected": true,
+          "latencyMs": 20,
+          "bandwidthMbps": 50
+        },
+        "currentRoute": null
+      },
+      "estimates": {
+        "requestId": "research",
+        "calibrationVersion": "synthetic-v1",
+        "calibrationSource": "SIMULATED",
+        "estimates": {}
+      },
+      "costs": {
+        "monetaryCosts": {
+          "EDGE": 0,
+          "CLOUD": 0,
+          "HYBRID": 0
+        }
+      },
+      "communicationCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      },
+      "switchingCosts": {
+        "EDGE": 0,
+        "CLOUD": 0,
+        "HYBRID": 0
+      }
+    }
+  }
+]

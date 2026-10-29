@@ -1,0 +1,76 @@
+{
+  "normalization": {
+    "cpu_percent": {
+      "min": 0,
+      "max": 100
+    },
+    "ram_percent": {
+      "min": 0,
+      "max": 100
+    },
+    "battery_percent": {
+      "min": 0,
+      "max": 100
+    },
+    "latency_ms": {
+      "min": 0,
+      "max": 500
+    },
+    "bandwidth_mbps": {
+      "min": 0,
+      "max": 100
+    },
+    "execution_time_ms": {
+      "min": 0,
+      "max": 5000
+    },
+    "energy_j": {
+      "min": 0,
+      "max": 100
+    },
+    "cost": {
+      "min": 0,
+      "max": 1
+    },
+    "carbon_g": {
+      "min": 0,
+      "max": 0.1
+    }
+  },
+  "weights": {
+    "execution_time": 0.5,
+    "energy": 0.2,
+    "cost": 0.2,
+    "carbon": 0.1
+  },
+  "device_adjustment": {
+    "strength": 0.1
+  },
+  "switching": {
+    "minimum_improvement": 0.05
+  },
+  "network_rules": {
+    "max_latency_ms": 200.0,
+    "min_bandwidth_mbps": 5.0
+  },
+  "profiles": {
+    "LATENCY_PRIORITY": {
+      "execution_time": 0.8,
+      "energy": 0.1,
+      "cost": 0.05,
+      "carbon": 0.05
+    },
+    "ENERGY_PRIORITY": {
+      "execution_time": 0.2,
+      "energy": 0.6,
+      "cost": 0.1,
+      "carbon": 0.1
+    },
+    "COST_PRIORITY": {
+      "execution_time": 0.2,
+      "energy": 0.1,
+      "cost": 0.6,
+      "carbon": 0.1
+    }
+  }
+}

@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+benchmarks/v2/edge_v2_idle_runs_*.csv
+benchmarks/v2/edge_v2_idle_summary_*.csv
+benchmarks/v2/edge_v2_idle_metadata_*.json
+benchmarks/v2/edge_v2_cpu_loaded_runs_*.csv
+benchmarks/v2/edge_v2_cpu_loaded_summary_*.csv
+benchmarks/v2/edge_v2_cpu_loaded_metadata_*.json
+tools/__pycache__/

@@ -1,0 +1,2 @@
+edge-service/src/main/resources/image-model/imagenet_classes.txt text eol=lf
+contracts/image-model/imagenet_classes.txt text eol=lf
