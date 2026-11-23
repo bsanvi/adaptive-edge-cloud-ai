@@ -21,8 +21,13 @@ import java.util.Map;
 @RequestMapping("/api/v1/research/network")
 public class ResearchNetworkProbeController {
     private final String cloudUrl;
-    public ResearchNetworkProbeController(@Value("${integration.cloud-url:http://127.0.0.1:8083}") String cloudUrl) {
+    private final String internalApiKey;
+
+    public ResearchNetworkProbeController(
+            @Value("${integration.cloud-url:http://127.0.0.1:8083}") String cloudUrl,
+            @Value("${security.internal-api-key:}") String internalApiKey) {
         this.cloudUrl=cloudUrl.replaceAll("/+$", "");
+        this.internalApiKey=internalApiKey;
     }
     @GetMapping("/live")
     public ResponseEntity<Map<String,Object>> sample(){
@@ -38,6 +43,8 @@ public class ResearchNetworkProbeController {
             c=(HttpURLConnection)URI.create(cloudUrl+"/api/v1/cloud/probe?bytes=65536").toURL().openConnection();
             c.setRequestMethod("GET");c.setConnectTimeout(1200);c.setReadTimeout(2200);
             c.setInstanceFollowRedirects(false);
+            if(internalApiKey!=null && !internalApiKey.isBlank())
+                c.setRequestProperty("X-Internal-Api-Key",internalApiKey);
             long started=System.nanoTime();
             if(c.getResponseCode()!=200)return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(result);
             int len=0;

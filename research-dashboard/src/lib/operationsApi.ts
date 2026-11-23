@@ -1,8 +1,10 @@
+import {secureRequest} from './security';
 /** Same-origin research operations. No browser-side scoring or fake job results. */
 export type OpsJob={id:string;kind:'EXPERIMENT'|'EXECUTION';taskId:string;status:string;runAt:string;createdAt:string;updatedAt:string;reportId:number|null;error:string|null;source:string;result?:Record<string,unknown>;request?:Record<string,unknown>};
 const API='/api/v1/research/operations';
 async function call<T>(url:string, init?:RequestInit):Promise<T>{
-  const r=await fetch(url,{cache:'no-store',...init});
+  const secured=await secureRequest(init);
+  const r=await fetch(url,{cache:'no-store',...secured});
   if(!r.ok){const response=await r.text();let error=response.slice(0,300);try{error=JSON.parse(response).error||error;}catch{/* text error */}throw new Error(`${r.status}: ${error}`)}
   return await r.json() as T;
 }

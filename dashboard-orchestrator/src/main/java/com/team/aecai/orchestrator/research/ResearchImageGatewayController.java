@@ -28,12 +28,18 @@ import java.util.UUID;
 @RequestMapping("/api/v1/research/images")
 public class ResearchImageGatewayController {
     private final String edgeUrl;
+    private final String internalApiKey;
     private final JsonMapper mapper;
     private final IntegratedHistory history;
     private final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3))
             .followRedirects(HttpClient.Redirect.NEVER).build();
-    public ResearchImageGatewayController(@Value("${integration.edge-url:http://127.0.0.1:8081}") String url,JsonMapper mapper,IntegratedHistory history,JdbcTemplate jdbc){
-        this.edgeUrl=url.replaceAll("/+$","");this.mapper=mapper;this.history=history;
+    public ResearchImageGatewayController(
+            @Value("${integration.edge-url:http://127.0.0.1:8081}") String url,
+            @Value("${security.internal-api-key:}") String internalApiKey,
+            JsonMapper mapper,IntegratedHistory history,JdbcTemplate jdbc){
+        this.edgeUrl=url.replaceAll("/+$","");
+        this.internalApiKey=internalApiKey;
+        this.mapper=mapper;this.history=history;
         jdbc.execute("ALTER TABLE integrated_runs ALTER COLUMN prediction VARCHAR(255)");
     }
     @PostMapping(consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -58,7 +64,9 @@ public class ResearchImageGatewayController {
             out.write("\r\n".getBytes(StandardCharsets.US_ASCII));
             out.write(("--"+boundary+"--\r\n").getBytes(StandardCharsets.US_ASCII));
             HttpRequest req=HttpRequest.newBuilder(URI.create(edgeUrl+"/api/v1/edge/image/upload"))
-                    .timeout(Duration.ofSeconds(20)).header("Content-Type","multipart/form-data; boundary="+boundary)
+                    .timeout(Duration.ofSeconds(20))
+                    .header("X-Internal-Api-Key",internalApiKey)
+                    .header("Content-Type","multipart/form-data; boundary="+boundary)
                     .POST(HttpRequest.BodyPublishers.ofByteArray(out.toByteArray())).build();
             HttpResponse<String> result=client.send(req,HttpResponse.BodyHandlers.ofString());
             return proxy(result);
@@ -70,7 +78,9 @@ public class ResearchImageGatewayController {
         try {
             long started=System.nanoTime();
             HttpRequest req=HttpRequest.newBuilder(URI.create(edgeUrl+"/api/v1/edge/image/classify/"+ref))
-                .timeout(Duration.ofSeconds(25)).POST(HttpRequest.BodyPublishers.noBody()).build();
+                .timeout(Duration.ofSeconds(25))
+                .header("X-Internal-Api-Key",internalApiKey)
+                .POST(HttpRequest.BodyPublishers.noBody()).build();
             HttpResponse<String> upstream=client.send(req,HttpResponse.BodyHandlers.ofString());
             ResponseEntity<?> response=proxy(upstream);
             if(upstream.statusCode()>=200&&upstream.statusCode()<300 && response.getBody() instanceof Map<?,?> payload){

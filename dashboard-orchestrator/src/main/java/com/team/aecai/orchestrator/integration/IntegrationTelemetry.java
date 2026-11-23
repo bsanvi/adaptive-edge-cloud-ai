@@ -25,16 +25,28 @@ public class IntegrationTelemetry {
     private final IntegratedHistory history;
     private final JsonMapper mapper;
     private final String edgeUrl;
+    private final String internalApiKey;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public IntegrationTelemetry(
             IntegrationServiceStatus serviceStatus,
             IntegratedHistory history,
             JsonMapper mapper,
-            @Value("${integration.edge-url:http://127.0.0.1:8081}") String edgeUrl) {
+            @Value("${integration.edge-url:http://127.0.0.1:8081}") String edgeUrl,
+            @Value("${security.internal-api-key:}") String internalApiKey) {
         this.serviceStatus = serviceStatus;
         this.history = history;
         this.mapper = mapper;
         this.edgeUrl = edgeUrl.replaceAll("/+$", "");
+        this.internalApiKey = internalApiKey;
+    }
+
+    IntegrationTelemetry(
+            IntegrationServiceStatus serviceStatus,
+            IntegratedHistory history,
+            JsonMapper mapper,
+            String edgeUrl) {
+        this(serviceStatus, history, mapper, edgeUrl, "");
     }
 
     public Map<String, Object> snapshot() {
@@ -94,6 +106,8 @@ public class IntegrationTelemetry {
             connection.setConnectTimeout(1000);
             connection.setReadTimeout(1400);
             connection.setInstanceFollowRedirects(false);
+            if (internalApiKey != null && !internalApiKey.isBlank())
+                connection.setRequestProperty("X-Internal-Api-Key", internalApiKey);
             if (connection.getResponseCode() != 200) return null;
             byte[] bytes;
             try (var stream = connection.getInputStream()) {

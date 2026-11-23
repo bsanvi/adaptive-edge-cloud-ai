@@ -82,30 +82,62 @@ public class IntegratedOrchestrator {
     private final double edgeCarbonIntensity;
     private final double cloudCarbonIntensity;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public IntegratedOrchestrator(IntegratedHistory history,
             @Value("${integration.edge-url:http://127.0.0.1:8081}") String edgeUrl,
             @Value("${integration.cloud-url:http://127.0.0.1:8083}") String cloudUrl,
             @Value("${integration.estimator-url:http://127.0.0.1:8084}") String estimatorUrl,
             @Value("${integration.decision-url:http://127.0.0.1:8001}") String decisionUrl,
+            @Value("${security.internal-api-key:}") String internalApiKey,
             @Value("${integration.assumed-usd-per-mb:0.02}") double assumedUsdPerMb,
             @Value("${integration.edge-carbon-intensity-g-per-kwh:500}") double edgeCarbonIntensity,
             @Value("${integration.cloud-carbon-intensity-g-per-kwh:400}") double cloudCarbonIntensity) {
         this.history = history;
-        this.edge = rest(edgeUrl);
-        this.cloud = rest(cloudUrl);
-        this.estimator = rest(estimatorUrl);
-        this.decision = rest(decisionUrl);
+        this.edge = rest(edgeUrl, internalApiKey);
+        this.cloud = rest(cloudUrl, internalApiKey);
+        this.estimator = rest(estimatorUrl, internalApiKey);
+        this.decision = rest(decisionUrl, internalApiKey);
         this.assumedUsdPerMb = assumedUsdPerMb;
         this.edgeCarbonIntensity = edgeCarbonIntensity;
         this.cloudCarbonIntensity = cloudCarbonIntensity;
     }
 
-    private static RestClient rest(String baseUrl) {
+    IntegratedOrchestrator(
+            IntegratedHistory history,
+            String edgeUrl,
+            String cloudUrl,
+            String estimatorUrl,
+            String decisionUrl,
+            double assumedUsdPerMb,
+            double edgeCarbonIntensity,
+            double cloudCarbonIntensity) {
+        this(
+                history,
+                edgeUrl,
+                cloudUrl,
+                estimatorUrl,
+                decisionUrl,
+                "",
+                assumedUsdPerMb,
+                edgeCarbonIntensity,
+                cloudCarbonIntensity
+        );
+    }
+
+    private static RestClient rest(String baseUrl, String internalApiKey) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(3000);
         factory.setReadTimeout(15000);
-        return RestClient.builder().baseUrl(baseUrl)
-                .requestFactory(factory).build();
+
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(factory);
+
+        if (internalApiKey != null && !internalApiKey.isBlank()) {
+            builder.defaultHeader("X-Internal-Api-Key", internalApiKey);
+        }
+
+        return builder.build();
     }
 
     public RunResult run(RunTask task) {

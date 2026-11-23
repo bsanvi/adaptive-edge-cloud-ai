@@ -14,13 +14,16 @@ import java.util.Map;
 @Profile("integration")
 public class IntegrationServiceStatus {
     private final String edgeUrl, cloudUrl, estimatorUrl, decisionUrl;
+    private final String internalApiKey;
     public IntegrationServiceStatus(
             @Value("${integration.edge-url:http://127.0.0.1:8081}") String edgeUrl,
             @Value("${integration.cloud-url:http://127.0.0.1:8083}") String cloudUrl,
             @Value("${integration.estimator-url:http://127.0.0.1:8084}") String estimatorUrl,
-            @Value("${integration.decision-url:http://127.0.0.1:8082}") String decisionUrl) {
+            @Value("${integration.decision-url:http://127.0.0.1:8001}") String decisionUrl,
+            @Value("${security.internal-api-key:}") String internalApiKey) {
         this.edgeUrl=edgeUrl; this.cloudUrl=cloudUrl;
         this.estimatorUrl=estimatorUrl; this.decisionUrl=decisionUrl;
+        this.internalApiKey=internalApiKey;
     }
     private boolean available(String base, String path) {
         HttpURLConnection conn=null;
@@ -30,6 +33,8 @@ public class IntegrationServiceStatus {
             conn.setConnectTimeout(900);
             conn.setReadTimeout(1200);
             conn.setInstanceFollowRedirects(false);
+            if(internalApiKey!=null && !internalApiKey.isBlank())
+                conn.setRequestProperty("X-Internal-Api-Key",internalApiKey);
             return conn.getResponseCode()==200;
         } catch(Exception e) {return false;}
         finally {if(conn!=null)conn.disconnect();}

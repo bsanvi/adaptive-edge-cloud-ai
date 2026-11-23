@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import {secureRequest} from './security';
 
 export type J = Record<string, unknown>;
 export type Route = 'EDGE' | 'CLOUD' | 'HYBRID';
@@ -20,7 +21,18 @@ const BASE='/api/v1/integrated';
 export async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController(); const timeout = setTimeout(()=>controller.abort(), 90000);
   try {
-    const res = await fetch(url,{ ...init, signal: controller.signal, headers: init?.body instanceof FormData ? init.headers : { 'Accept':'application/json', ...((init?.body && {'Content-Type':'application/json'}) || {}),...init?.headers }, cache:'no-store' });
+    const secured=await secureRequest(init);
+    const headers=new Headers(secured.headers);
+    headers.set('Accept','application/json');
+    if(secured.body && !(secured.body instanceof FormData)){
+      headers.set('Content-Type','application/json');
+    }
+    const res=await fetch(url,{
+      ...secured,
+      signal:controller.signal,
+      headers,
+      cache:'no-store'
+    });
     if (!res.ok) {const body=await res.text(); let detail=body.slice(0,280);try{const parsed=JSON.parse(body);detail=parsed.error||parsed.message||detail;}catch{/* plain response */}throw new Error(`${res.status} ${detail || res.statusText}`)}
     return await res.json() as T;
   } finally {clearTimeout(timeout)}
